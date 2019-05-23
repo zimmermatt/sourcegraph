@@ -270,7 +270,7 @@ func main() {
 			bk.Cmd("yarn --frozen-lockfile --network-timeout 60000"),
 			bk.Cmd("pushd browser"),
 			bk.Cmd("yarn -s run build"),
-			bk.Cmd("yarn -s run test-e2e"),
+			bk.Cmd("yarn -s run test-chrome-e2e"),
 			bk.Cmd("popd"),
 			bk.ArtifactPaths("./puppeteer/*.png"))
 
