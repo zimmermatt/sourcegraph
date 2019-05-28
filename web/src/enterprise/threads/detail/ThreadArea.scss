@@ -7,6 +7,11 @@
     &__sidebar {
         background-color: $color-bg-2;
     }
+
+    // TODO!(sqs): hacky
+    .markdown pre {
+        padding: 0.25rem;
+    }
 }
 
 .theme-light .thread-area {

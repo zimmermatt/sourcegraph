@@ -29,7 +29,18 @@ export async function computeWorkspaceEditDiff(
     return {
         diff: fileDiffs
             .map(fileDiff =>
-                createTwoFilesPatch(fileDiff.oldPath, fileDiff.newPath, fileDiff.oldText, fileDiff.newText)
+                createTwoFilesPatch(
+                    fileDiff.oldPath,
+                    fileDiff.newPath,
+                    fileDiff.oldText,
+                    fileDiff.newText,
+                    undefined,
+                    undefined,
+                    { context: 0 }
+                )
+                    .split('\n')
+                    .slice(4, -1)
+                    .join('\n')
             )
             .join('\n'),
     }

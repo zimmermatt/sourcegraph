@@ -268,7 +268,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                                             threadSettings={threadSettings}
                                             diagnostic={diagnostic}
                                             onThreadUpdate={onThreadUpdate}
-                                            className="rounded-0 border-0"
+                                            className="m-2"
                                             headerClassName="thread-inbox-items-list__item-header sticky-top"
                                             headerStyle={{
                                                 // TODO!(sqs): this is the hardcoded height of ThreadAreaNavbar

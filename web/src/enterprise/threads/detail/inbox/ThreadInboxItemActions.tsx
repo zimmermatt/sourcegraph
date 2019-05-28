@@ -1,7 +1,9 @@
 import H from 'history'
 import PencilIcon from 'mdi-react/PencilIcon'
+import PlayCircleOutlineIcon from 'mdi-react/PlayCircleOutlineIcon'
 import SourceCommitIcon from 'mdi-react/SourceCommitIcon'
 import React, { useState } from 'react'
+import { CodeAction } from 'sourcegraph'
 import { ChatIcon } from '../../../../../../shared/src/components/icons'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
@@ -15,9 +17,13 @@ interface Props extends ExtensionsControllerProps {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'settings'>
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
-    inboxItem: GQL.IDiscussionThreadTargetRepo
-    onInboxItemUpdate: (item: GQL.DiscussionThreadTarget) => void
+
+    codeActions: CodeAction[]
+    activeCodeAction: CodeAction | undefined
+    onCodeActionActivate: (codeAction: CodeAction) => void
+
     className?: string
+    buttonClassName?: string
     history: H.History
     location: H.Location
 }
@@ -30,61 +36,25 @@ export const ThreadInboxItemActions: React.FunctionComponent<Props> = ({
     thread,
     onThreadUpdate,
     threadSettings,
-    inboxItem,
-    onInboxItemUpdate,
+    codeActions,
+    activeCodeAction,
+    onCodeActionActivate: onCodeActionClick,
     className,
+    buttonClassName = 'btn btn-link text-decoration-none',
     history,
     location,
     extensionsController,
 }) => {
-    const [isCreatingDiscussion, setIsCreatingDiscussion] = useState(false)
-
+    const a = 123
     return (
-        <div className={className}>
-            {isCreatingDiscussion ? (
-                <DiscussionsCreate
-                    repoID={'123'}
-                    repoName={'repo'}
-                    commitID="master" // TODO!(sqs)
-                    rev="master"
-                    filePath="abc"
-                    className="p-2"
-                    onDiscard={() => setIsCreatingDiscussion(false)}
-                    extensionsController={extensionsController}
-                    history={history}
-                    location={location}
-                />
-            ) : (
-                <>
-                    <ThreadInboxItemAddToPullRequest
-                        thread={thread}
-                        threadSettings={threadSettings}
-                        onThreadUpdate={onThreadUpdate}
-                        inboxItem={inboxItem}
-                        buttonClassName="btn-link text-decoration-none"
-                        extensionsController={extensionsController}
-                    />
-                    <ThreadInboxItemSlackMessage buttonClassName="btn-link text-decoration-none" />
-                    <button onClick={() => setIsCreatingDiscussion(true)} className="btn btn-link text-decoration-none">
-                        <ChatIcon className="icon-inline" /> Add comment
-                    </button>
-                    <button onClick={() => alert('not implemented')} className="btn btn-link text-decoration-none">
-                        <SourceCommitIcon className="icon-inline" /> Commit
-                    </button>
-                    <button onClick={() => alert('not implemented')} className="btn btn-link text-decoration-none">
-                        <PencilIcon className="icon-inline" /> Edit
-                    </button>
-                    <ThreadInboxItemIgnoreButton
-                        inboxItem={inboxItem}
-                        onInboxItemUpdate={onInboxItemUpdate}
-                        thread={thread}
-                        onThreadUpdate={onThreadUpdate}
-                        className="text-decoration-none"
-                        buttonClassName="btn-link"
-                        extensionsController={extensionsController}
-                    />
-                </>
-            )}
+        <div className={`d-flex align-items-center ${className}`}>
+            <PlayCircleOutlineIcon className="icon-inline text-muted" aria-label="Actions" />
+            {/* <label className="mb-0 text-muted">Actions</label> */}
+            {codeActions.map((codeAction, i) => (
+                <button key={i} onClick={() => onCodeActionClick(codeAction)} className={buttonClassName}>
+                    {codeAction.title}
+                </button>
+            ))}
         </div>
     )
 }

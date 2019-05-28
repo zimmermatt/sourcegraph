@@ -13,7 +13,7 @@ import { PlatformContextProps } from '../../../../../../shared/src/platform/cont
 import { fetchHighlightedFileLines } from '../../../../repo/backend'
 import { FileDiffHunks } from '../../../../repo/compare/FileDiffHunks'
 import { ThreadSettings } from '../../settings'
-import { ThreadInboxItemActions } from './ThreadInboxItemActions'
+import { ThreadInboxItemActions } from './ThreadInboxItemActions_OLD'
 import { WorkspaceEditPreview } from './WorkspaceEditPreview'
 
 interface Props extends ExtensionsControllerProps, PlatformContextProps {

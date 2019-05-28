@@ -74,17 +74,17 @@ function createCodeActionProvider(): sourcegraph.CodeActionProvider {
                 return []
             }
             const workspaceEdit = new sourcegraph.WorkspaceEdit()
-            // for (const _diag of context.diagnostics) {
-            //     for (const range of findMatchRanges(doc.text)) {
-            //         workspaceEdit.replace(new URL(doc.uri), range, "import React from 'react'")
-            //     }
-            // }
-            for (const [uri, diags] of sourcegraph.languages.getDiagnostics()) {
-                const doc = await sourcegraph.workspace.openTextDocument(uri)
+            for (const _diag of context.diagnostics) {
                 for (const range of findMatchRanges(doc.text)) {
                     workspaceEdit.replace(new URL(doc.uri), range, "import React from 'react'")
                 }
             }
+            // for (const [uri, diags] of sourcegraph.languages.getDiagnostics()) {
+            //     const doc = await sourcegraph.workspace.openTextDocument(uri)
+            //     for (const range of findMatchRanges(doc.text)) {
+            //         workspaceEdit.replace(new URL(doc.uri), range, "import React from 'react'")
+            //     }
+            // }
             return [
                 {
                     title: 'Remove unneeded import-star of React',

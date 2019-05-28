@@ -1,14 +1,10 @@
 import { Range } from '@sourcegraph/extension-api-classes'
 import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
-import classNames from 'classnames'
 import H from 'history'
-import { upperFirst } from 'lodash'
-import AlertCircleOutlineIcon from 'mdi-react/AlertCircleOutlineIcon'
 import React, { useEffect, useState } from 'react'
 import { from, Subscription } from 'rxjs'
 import { catchError, map, startWith } from 'rxjs/operators'
 import * as sourcegraph from 'sourcegraph'
-import { DiagnosticSeverity } from '../../../../../../shared/src/api/types/diagnosticCollection'
 import { LinkOrSpan } from '../../../../../../shared/src/components/LinkOrSpan'
 import { displayRepoName } from '../../../../../../shared/src/components/RepoFileLink'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
@@ -18,6 +14,7 @@ import { asError, ErrorLike, isErrorLike } from '../../../../../../shared/src/ut
 import { makeRepoURI } from '../../../../../../shared/src/util/url'
 import { DiagnosticSeverityIcon } from '../../../../diagnostics/components/DiagnosticSeverityIcon'
 import { ThreadSettings } from '../../settings'
+import { ThreadInboxItemActions } from './ThreadInboxItemActions'
 import { WorkspaceEditPreview } from './WorkspaceEditPreview'
 
 export interface DiagnosticInfo extends sourcegraph.Diagnostic {
@@ -85,13 +82,21 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
         return () => subscriptions.unsubscribe()
     }, [diagnostic, extensionsController])
 
+    const [activeCodeAction, setActiveCodeAction] = useState<sourcegraph.CodeAction>()
+    useEffect(() => {
+        setActiveCodeAction(
+            codeActionsOrError !== LOADING && !isErrorLike(codeActionsOrError) && codeActionsOrError.length > 0
+                ? codeActionsOrError[0]
+                : undefined
+        )
+    }, [activeCodeAction, codeActionsOrError])
+
     return (
         <div className={`card border ${className}`}>
-            <div className={`card-header d-flex align-items-center ${headerClassName}`} style={headerStyle}>
-                <DiagnosticSeverityIcon severity={diagnostic.severity} className="icon-inline mr-2" />
+            <header className={`card-header d-flex align-items-start ${headerClassName}`} style={headerStyle}>
                 <div className="flex-1">
-                    <h3 className="d-flex align-items-center mb-0 h6">
-                        <LinkOrSpan to={diagnostic.entry.url} className="text-body">
+                    <h3 className="mb-0 h6 small">
+                        <LinkOrSpan to={diagnostic.entry.url || 'TODO!(sqs)'} className="d-block">
                             {diagnostic.entry.path ? (
                                 <>
                                     <span className="font-weight-normal">
@@ -102,9 +107,12 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
                             ) : (
                                 displayRepoName(diagnostic.entry.repository.name)
                             )}
-                        </LinkOrSpan>{' '}
-                        &mdash; {diagnostic.message}
+                        </LinkOrSpan>
                     </h3>
+                    <div className="d-flex align-items-center mt-1 small">
+                        <DiagnosticSeverityIcon severity={diagnostic.severity} className="icon-inline mr-1" />
+                        <span>{diagnostic.message}</span>
+                    </div>
                     {/* TODO!(sqs) <small className="text-muted">
                         Changed {formatDistance(Date.parse(item.updatedAt), Date.now())} ago by{' '}
                         <strong>{item.updatedBy}</strong>
@@ -121,27 +129,39 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
                         </ul>
                     )}
                     </div>*/}
-            </div>
+            </header>
             {codeActionsOrError === LOADING ? (
                 <LoadingSpinner className="icon-inline" />
             ) : isErrorLike(codeActionsOrError) ? (
                 <span className="text-danger">{codeActionsOrError.message}</span>
             ) : (
-                codeActionsOrError.map((codeAction, i) =>
-                    codeAction.edit ? (
-                        <WorkspaceEditPreview
-                            key={JSON.stringify(codeAction.edit)}
-                            {...props}
-                            workspaceEdit={codeAction.edit}
-                            extensionsController={extensionsController}
-                            className="overflow-auto"
-                        />
+                <>
+                    <ThreadInboxItemActions
+                        {...props}
+                        codeActions={codeActionsOrError}
+                        activeCodeAction={activeCodeAction}
+                        onCodeActionActivate={setActiveCodeAction}
+                        className="border-top small px-2"
+                        buttonClassName="btn btn-sm btn-link text-decoration-none"
+                        extensionsController={extensionsController}
+                    />
+                    {activeCodeAction ? (
+                        activeCodeAction.edit ? (
+                            <WorkspaceEditPreview
+                                key={JSON.stringify(activeCodeAction.edit)}
+                                {...props}
+                                workspaceEdit={activeCodeAction.edit}
+                                extensionsController={extensionsController}
+                                className="overflow-auto"
+                            />
+                        ) : (
+                            'no edit'
+                        )
                     ) : (
-                        'no edit'
-                    )
-                )
+                        'no active code action'
+                    )}
+                </>
             )}
-            {/*     <ThreadInboxItemActions {...props} diagnostic={diagnostic} className="border-top" /> TODO!(sqs)*/}
         </div>
     )
 }
