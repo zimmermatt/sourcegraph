@@ -89,11 +89,11 @@ function createCodeActionProvider(): sourcegraph.CodeActionProvider {
                 }
             }
 
-            const ignoreEdits = new sourcegraph.WorkspaceEdit()
+            const disableRuleEdits = new sourcegraph.WorkspaceEdit()
             for (const diag of context.diagnostics) {
                 const { binding, module } = JSON.parse(diag.code as string)
                 for (const range of findMatchRanges(doc.text, binding, module)) {
-                    ignoreEdits.insert(
+                    disableRuleEdits.insert(
                         new URL(doc.uri),
                         range.end,
                         ' // sourcegraph:ignore-line React lint https://sourcegraph.example.com/ofYRz6NFzj'
@@ -116,8 +116,8 @@ function createCodeActionProvider(): sourcegraph.CodeActionProvider {
                     ),
                 },
                 {
-                    title: 'Ignore',
-                    edit: ignoreEdits,
+                    title: 'Disable rule',
+                    edit: disableRuleEdits,
                     diagnostics: flatten(
                         sourcegraph.languages.getDiagnostics().map(([uri, diagnostics]) => diagnostics)
                     ),
