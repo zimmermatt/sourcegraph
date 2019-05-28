@@ -16,7 +16,7 @@ import { useEffectAsync } from '../../../../util/useEffectAsync'
 import { QueryParameterProps } from '../../components/withQueryParameter/WithQueryParameter'
 import { ThreadSettings } from '../../settings'
 import { ThreadInboxSidebar } from './sidebar/ThreadInboxSidebar'
-import { DiagnosticInfo, ThreadInboxDiagnosticItem } from './ThreadInboxDiagnosticItem'
+import { DiagnosticInfo, ThreadInboxFileItem } from './ThreadInboxFileItem'
 import { memoizeObservable } from '../../../../../../shared/src/util/memoizeObservable'
 
 // TODO!(sqs): use relative path/rev for DiscussionThreadTargetRepo
@@ -239,7 +239,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                     ) : (
                         <div className="d-flex">
                             <Resizable
-                                className="sticky-top border-right"
+                                className="sticky-top border-right d-none"
                                 handlePosition="right"
                                 storageKey="thread-inbox-items-list__sidebar-resizable"
                                 defaultSize={216 /* px */}
@@ -261,7 +261,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                             <ul className="list-unstyled mb-0 flex-1" style={{ minWidth: '0' }}>
                                 {itemsOrError.map((diagnostic, i) => (
                                     <li key={i}>
-                                        <ThreadInboxDiagnosticItem
+                                        <ThreadInboxFileItem
                                             {...props}
                                             key={i}
                                             thread={thread}

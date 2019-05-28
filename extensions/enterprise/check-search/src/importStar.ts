@@ -37,7 +37,7 @@ function startDiagnostics(): Unsubscribable {
                                         includes: ['^(web/src/org|browser/src/libs/phabricator)/.*\\.tsx?$'],
                                         type: 'regexp',
                                     },
-                                    maxResults: 3,
+                                    maxResults: 5,
                                 }
                             )
                         )
@@ -52,7 +52,8 @@ function startDiagnostics(): Unsubscribable {
                                     findMatchRanges(text, binding, module).map(
                                         range =>
                                             ({
-                                                message: 'Unnecessary `import * as ...`',
+                                                message:
+                                                    'Unnecessary `import * as ...` of module that has default export',
                                                 range,
                                                 severity: sourcegraph.DiagnosticSeverity.Information,
                                                 code: JSON.stringify({ binding, module }),
@@ -116,11 +117,21 @@ function createCodeActionProvider(): sourcegraph.CodeActionProvider {
                     ),
                 },
                 {
-                    title: 'Disable rule',
+                    title: 'Ignore',
                     edit: disableRuleEdits,
                     diagnostics: flatten(
                         sourcegraph.languages.getDiagnostics().map(([uri, diagnostics]) => diagnostics)
                     ),
+                },
+                {
+                    title: 'Open tsconfig.json',
+                    command: {
+                        title: 'Open tsconfig.json',
+                        command: 'open',
+                        arguments: [
+                            'http://localhost:3080/github.com/sourcegraph/sourcegraph/-/blob/web/tsconfig.json',
+                        ],
+                    },
                 },
             ]
         },

@@ -1,8 +1,9 @@
 import H from 'history'
 import CheckboxBlankCirckeOutlineIcon from 'mdi-react/CheckboxBlankCircleOutlineIcon'
 import CheckboxMarkedCircleOutlineIcon from 'mdi-react/CheckboxMarkedCircleOutlineIcon'
+import DotsHorizontalIcon from 'mdi-react/DotsHorizontalIcon'
 import PlayCircleOutlineIcon from 'mdi-react/PlayCircleOutlineIcon'
-import React from 'react'
+import React, { useCallback, useState } from 'react'
 import { CodeAction } from 'sourcegraph'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
@@ -15,7 +16,7 @@ interface Props extends ExtensionsControllerProps {
 
     codeActions: CodeAction[]
     activeCodeAction: CodeAction | undefined
-    onCodeActionActivate: (codeAction: CodeAction) => void
+    onCodeActionActivate: (codeAction: CodeAction | undefined) => void
 
     className?: string
     buttonClassName?: string
@@ -39,34 +40,66 @@ export const ThreadInboxItemActions: React.FunctionComponent<Props> = ({
     activeButtonClassName,
 }) => {
     const a = 123
+    const codeActionsWithEdit = codeActions.filter(({ edit }) => !!edit)
+    const codeActionsWithCommand = codeActions.filter(({ command }) => !!command)
+
+    const [showCommands, setShowCommands] = useState(false)
+    const toggleShowCommands = useCallback(() => setShowCommands(!showCommands), [showCommands])
+
     return (
-        <div className={`d-flex align-items-center ${className}`}>
-            {/* <PlayCircleOutlineIcon className="icon-inline text-muted mr-2 mb-2" aria-label="Actions" /> */}
-            {/* <PlayCircleOutlineIcon className="icon-inline text-muted mr-2 mb-2" aria-label="Actions" /> */}
-            <label className="mr-2 mb-2 text-muted">Fix:</label>
-            <div className="btn-group btn-group-toggle" data-toggle="buttons">
-                {codeActions.map((codeAction, i) => (
-                    <label
-                        key={i}
-                        className={`d-flex align-items-center ${buttonClassName} ${
-                            codeAction === activeCodeAction ? activeButtonClassName : inactiveButtonClassName
-                        } mr-2 mb-2`}
-                        style={{ cursor: 'pointer' }}
-                    >
-                        <input
-                            type="radio"
-                            autoComplete="off"
-                            checked={codeAction === activeCodeAction}
+        <div className={className}>
+            <div className={`d-flex align-items-center`}>
+                {/* <PlayCircleOutlineIcon className="icon-inline text-muted mr-2 mb-2" aria-label="Fixes" /> */}
+                <label className="mr-2 mb-2 text-muted">Fix:</label>
+                <div className="btn-group btn-group-toggle" data-toggle="buttons">
+                    {codeActionsWithEdit.map((codeAction, i) => (
+                        <label
+                            key={i}
+                            className={`d-flex align-items-center ${buttonClassName} ${
+                                codeAction === activeCodeAction ? activeButtonClassName : inactiveButtonClassName
+                            } mr-2 mb-2`}
+                            style={{ cursor: 'pointer' }}
                             onClick={() => onCodeActionClick(codeAction)}
-                        />{' '}
-                        {codeAction === activeCodeAction ? (
-                            <CheckboxMarkedCircleOutlineIcon className="icon-inline small mr-1" />
-                        ) : (
-                            <CheckboxBlankCirckeOutlineIcon className="icon-inline small mr-1" />
-                        )}{' '}
-                        {codeAction.title}
-                    </label>
-                ))}
+                        >
+                            <input
+                                type="radio"
+                                autoComplete="off"
+                                checked={codeAction === activeCodeAction}
+                                onChange={e => onCodeActionClick(e.currentTarget.checked ? codeAction : undefined)}
+                            />{' '}
+                            {codeAction === activeCodeAction ? (
+                                <CheckboxMarkedCircleOutlineIcon className="icon-inline small mr-1" />
+                            ) : (
+                                <CheckboxBlankCirckeOutlineIcon className="icon-inline small mr-1" />
+                            )}{' '}
+                            {codeAction.title}
+                        </label>
+                    ))}
+                </div>
+                <button
+                    type="button"
+                    className={`${buttonClassName} d-flex align-items-center btn-link text-decoration-none mr-2 mb-2`}
+                    onClick={toggleShowCommands}
+                    data-tooltip="Other actions..."
+                >
+                    <DotsHorizontalIcon className="icon-inline text-muted" aria-label="Actions" />
+                </button>
+            </div>
+            <div className={`d-flex align-items-center`}>
+                {showCommands && (
+                    <ul className="list-unstyled mb-0 d-flex flex-wrap">
+                        {codeActionsWithCommand.map((codeAction, i) => (
+                            <button
+                                key={i}
+                                type="button"
+                                className={`${buttonClassName} ${inactiveButtonClassName} mr-2 mb-2`}
+                                onClick={() => onCodeActionClick(codeAction)}
+                            >
+                                {codeAction.title}
+                            </button>
+                        ))}
+                    </ul>
+                )}
             </div>
         </div>
     )

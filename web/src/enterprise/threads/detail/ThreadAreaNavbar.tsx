@@ -49,7 +49,7 @@ export const ThreadAreaNavbar: React.FunctionComponent<Props> = ({
                             className="thread-area-navbar__nav-link nav-link rounded-0"
                             activeClassName="thread-area-navbar__nav-link--active"
                         >
-                            <InboxIcon className="icon-inline" /> Inbox{' '}
+                            <InboxIcon className="icon-inline" /> Items{' '}
                             <span className="badge badge-secondary">
                                 {
                                     thread.targets.nodes

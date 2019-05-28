@@ -40,9 +40,9 @@ interface Props extends ExtensionsControllerProps, PlatformContextProps {
 }
 
 /**
- * An inbox item in a thread that refers to a diagnostic.
+ * An inbox item in a thread that refers to a file.
  */
-export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
+export const ThreadInboxFileItem: React.FunctionComponent<Props> = ({
     diagnostic,
     className = '',
     headerClassName = '',
@@ -82,7 +82,7 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
         return () => subscriptions.unsubscribe()
     }, [diagnostic, extensionsController])
 
-    const [activeCodeAction, setActiveCodeAction] = useState<sourcegraph.CodeAction>()
+    const [activeCodeAction, setActiveCodeAction] = useState<sourcegraph.CodeAction | undefined>()
     useEffect(() => {
         setActiveCodeAction(
             codeActionsOrError !== LOADING && !isErrorLike(codeActionsOrError) && codeActionsOrError.length > 0
@@ -109,10 +109,6 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
                             )}
                         </LinkOrSpan>
                     </h3>
-                    <div className="d-flex align-items-center mt-1 small">
-                        <DiagnosticSeverityIcon severity={diagnostic.severity} className="icon-inline mr-1" />
-                        <span>{diagnostic.message}</span>
-                    </div>
                     {/* TODO!(sqs) <small className="text-muted">
                         Changed {formatDistance(Date.parse(item.updatedAt), Date.now())} ago by{' '}
                         <strong>{item.updatedBy}</strong>
@@ -130,6 +126,10 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
                     )}
                     </div>*/}
             </header>
+            <div className="d-flex align-items-center mt-2 mx-2 mb-1 small">
+                <DiagnosticSeverityIcon severity={diagnostic.severity} className="icon-inline mr-1" />
+                <span>{diagnostic.message}</span>
+            </div>
             {codeActionsOrError === LOADING ? (
                 <LoadingSpinner className="icon-inline" />
             ) : isErrorLike(codeActionsOrError) ? (
@@ -141,10 +141,10 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
                         codeActions={codeActionsOrError}
                         activeCodeAction={activeCodeAction}
                         onCodeActionActivate={setActiveCodeAction}
-                        className="border-top small px-2 pt-2 pb-0"
+                        className="small px-2 pt-2 pb-0"
                         buttonClassName="btn btn-sm px-1 py-0 text-decoration-none"
                         inactiveButtonClassName="btn-link"
-                        activeButtonClassName="btn-success"
+                        activeButtonClassName="btn-primary"
                         extensionsController={extensionsController}
                     />
                     {activeCodeAction ? (
