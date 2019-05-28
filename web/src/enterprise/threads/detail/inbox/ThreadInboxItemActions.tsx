@@ -1,17 +1,10 @@
 import H from 'history'
-import PencilIcon from 'mdi-react/PencilIcon'
 import PlayCircleOutlineIcon from 'mdi-react/PlayCircleOutlineIcon'
-import SourceCommitIcon from 'mdi-react/SourceCommitIcon'
-import React, { useState } from 'react'
+import React from 'react'
 import { CodeAction } from 'sourcegraph'
-import { ChatIcon } from '../../../../../../shared/src/components/icons'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
-import { DiscussionsCreate } from '../../../../repo/blob/discussions/DiscussionsCreate'
 import { ThreadSettings } from '../../settings'
-import { ThreadInboxItemAddToPullRequest } from './actions/addToPullRequest/ThreadInboxItemAddToPullRequest'
-import { ThreadInboxItemSlackMessage } from './actions/slackMessage/ThreadInboxItemSlackMessage'
-import { ThreadInboxItemIgnoreButton } from './ThreadInboxItemIgnoreButton'
 
 interface Props extends ExtensionsControllerProps {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'settings'>
@@ -24,6 +17,8 @@ interface Props extends ExtensionsControllerProps {
 
     className?: string
     buttonClassName?: string
+    inactiveButtonClassName?: string
+    activeButtonClassName?: string
     history: H.History
     location: H.Location
 }
@@ -33,25 +28,27 @@ interface Props extends ExtensionsControllerProps {
  */
 // tslint:disable: jsx-no-lambda
 export const ThreadInboxItemActions: React.FunctionComponent<Props> = ({
-    thread,
-    onThreadUpdate,
-    threadSettings,
     codeActions,
     activeCodeAction,
     onCodeActionActivate: onCodeActionClick,
     className,
     buttonClassName = 'btn btn-link text-decoration-none',
-    history,
-    location,
-    extensionsController,
+    inactiveButtonClassName,
+    activeButtonClassName,
 }) => {
     const a = 123
     return (
         <div className={`d-flex align-items-center ${className}`}>
-            <PlayCircleOutlineIcon className="icon-inline text-muted" aria-label="Actions" />
-            {/* <label className="mb-0 text-muted">Actions</label> */}
+            {/* <PlayCircleOutlineIcon className="icon-inline text-muted mr-2 mb-2" aria-label="Actions" /> */}
+            <label className="mr-2 mb-2 text-muted">Actions:</label>
             {codeActions.map((codeAction, i) => (
-                <button key={i} onClick={() => onCodeActionClick(codeAction)} className={buttonClassName}>
+                <button
+                    key={i}
+                    onClick={() => onCodeActionClick(codeAction)}
+                    className={`${buttonClassName} ${
+                        codeAction === activeCodeAction ? activeButtonClassName : inactiveButtonClassName
+                    } mr-2 mb-2`}
+                >
                     {codeAction.title}
                 </button>
             ))}

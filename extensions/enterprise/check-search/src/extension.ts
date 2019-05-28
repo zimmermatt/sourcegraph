@@ -1,6 +1,6 @@
 import * as sourcegraph from 'sourcegraph'
-import { registerDemo0 } from './demo0'
+import { registerDemo0 as registerImportStarFixups } from './importStar'
 
 export function activate(ctx: sourcegraph.ExtensionContext): void {
-    ctx.subscriptions.add(registerDemo0())
+    ctx.subscriptions.add(registerImportStarFixups())
 }

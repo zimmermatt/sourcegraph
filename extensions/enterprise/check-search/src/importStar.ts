@@ -14,6 +14,8 @@ export function registerDemo0(): Unsubscribable {
     return subscriptions
 }
 
+const mods = [{ binding: 'React', module: 'react' }, { binding: 'H', module: 'history' }]
+
 function startDiagnostics(): Unsubscribable {
     const subscriptions = new Subscription()
 
@@ -28,11 +30,11 @@ function startDiagnostics(): Unsubscribable {
                     const results = flatten(
                         await from(
                             sourcegraph.search.findTextInFiles(
-                                { pattern: '"import * as react"', type: 'regexp' },
+                                { pattern: 'import \\* as (React|H)', type: 'regexp' },
                                 {
                                     repositories: { includes: ['sourcegraph$'], type: 'regexp' },
                                     files: {
-                                        includes: ['^web/src/.*\\.tsx?$'],
+                                        includes: ['^(web/src/org|browser/src/libs/phabricator)/.*\\.tsx?$'],
                                         type: 'regexp',
                                     },
                                     maxResults: 10,
@@ -45,13 +47,18 @@ function startDiagnostics(): Unsubscribable {
                     return combineLatestOrDefault(
                         results.map(async ({ uri }) => {
                             const { text } = await sourcegraph.workspace.openTextDocument(new URL(uri))
-                            const diagnostics: sourcegraph.Diagnostic[] = findMatchRanges(text).map(
-                                range =>
-                                    ({
-                                        message: 'Unnecessary import * from React',
-                                        range,
-                                        severity: sourcegraph.DiagnosticSeverity.Information,
-                                    } as sourcegraph.Diagnostic)
+                            const diagnostics: sourcegraph.Diagnostic[] = flatten(
+                                mods.map(({ binding, module }) =>
+                                    findMatchRanges(text, binding, module).map(
+                                        range =>
+                                            ({
+                                                message: 'Unnecessary `import * as ...`',
+                                                range,
+                                                severity: sourcegraph.DiagnosticSeverity.Information,
+                                                code: JSON.stringify({ binding, module }),
+                                            } as sourcegraph.Diagnostic)
+                                    )
+                                )
                             )
                             return [new URL(uri), diagnostics] as [URL, sourcegraph.Diagnostic[]]
                         })
@@ -73,12 +80,27 @@ function createCodeActionProvider(): sourcegraph.CodeActionProvider {
             if (context.diagnostics.length === 0) {
                 return []
             }
-            const workspaceEdit = new sourcegraph.WorkspaceEdit()
-            for (const _diag of context.diagnostics) {
-                for (const range of findMatchRanges(doc.text)) {
-                    workspaceEdit.replace(new URL(doc.uri), range, "import React from 'react'")
+
+            const fixEdits = new sourcegraph.WorkspaceEdit()
+            for (const diag of context.diagnostics) {
+                const { binding, module } = JSON.parse(diag.code as string)
+                for (const range of findMatchRanges(doc.text, binding, module)) {
+                    fixEdits.replace(new URL(doc.uri), range, `import ${binding} from '${module}'`)
                 }
             }
+
+            const ignoreEdits = new sourcegraph.WorkspaceEdit()
+            for (const diag of context.diagnostics) {
+                const { binding, module } = JSON.parse(diag.code as string)
+                for (const range of findMatchRanges(doc.text, binding, module)) {
+                    ignoreEdits.insert(
+                        new URL(doc.uri),
+                        range.end,
+                        ' // sourcegraph:ignore-line React lint https://sourcegraph.example.com/ofYRz6NFzj'
+                    )
+                }
+            }
+
             // for (const [uri, diags] of sourcegraph.languages.getDiagnostics()) {
             //     const doc = await sourcegraph.workspace.openTextDocument(uri)
             //     for (const range of findMatchRanges(doc.text)) {
@@ -87,8 +109,15 @@ function createCodeActionProvider(): sourcegraph.CodeActionProvider {
             // }
             return [
                 {
-                    title: 'Remove unneeded import-star of React',
-                    edit: workspaceEdit,
+                    title: 'Convert to named import',
+                    edit: fixEdits,
+                    diagnostics: flatten(
+                        sourcegraph.languages.getDiagnostics().map(([uri, diagnostics]) => diagnostics)
+                    ),
+                },
+                {
+                    title: 'Ignore',
+                    edit: ignoreEdits,
                     diagnostics: flatten(
                         sourcegraph.languages.getDiagnostics().map(([uri, diagnostics]) => diagnostics)
                     ),
@@ -98,10 +127,10 @@ function createCodeActionProvider(): sourcegraph.CodeActionProvider {
     }
 }
 
-function findMatchRanges(text: string): sourcegraph.Range[] {
+function findMatchRanges(text: string, binding: string, module: string): sourcegraph.Range[] {
     const ranges: sourcegraph.Range[] = []
     for (const [i, line] of text.split('\n').entries()) {
-        const pat = /^import \* as React from 'react'$/g
+        const pat = new RegExp(`^import \\* as ${binding} from '${module}'$`, 'g')
         for (let match = pat.exec(line); !!match; match = pat.exec(line)) {
             ranges.push(new sourcegraph.Range(i, match.index, i, match.index + match[0].length))
         }

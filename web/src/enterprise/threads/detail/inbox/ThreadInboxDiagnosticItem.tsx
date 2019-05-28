@@ -89,7 +89,7 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
                 ? codeActionsOrError[0]
                 : undefined
         )
-    }, [activeCodeAction, codeActionsOrError])
+    }, [codeActionsOrError])
 
     return (
         <div className={`card border ${className}`}>
@@ -141,8 +141,10 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
                         codeActions={codeActionsOrError}
                         activeCodeAction={activeCodeAction}
                         onCodeActionActivate={setActiveCodeAction}
-                        className="border-top small px-2"
-                        buttonClassName="btn btn-sm btn-link text-decoration-none"
+                        className="border-top small px-2 pt-2 pb-0"
+                        buttonClassName="btn btn-sm px-1 py-0"
+                        inactiveButtonClassName="btn-outline-link"
+                        activeButtonClassName="btn-primary text-white"
                         extensionsController={extensionsController}
                     />
                     {activeCodeAction ? (
