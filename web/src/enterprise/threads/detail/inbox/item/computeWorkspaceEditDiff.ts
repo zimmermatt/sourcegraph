@@ -36,7 +36,7 @@ export async function computeWorkspaceEditDiff(
                     fileDiff.newText,
                     undefined,
                     undefined,
-                    { context: 0 }
+                    { context: 1 }
                 )
                     .split('\n')
                     .slice(4, -1)

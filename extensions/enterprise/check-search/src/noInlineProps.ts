@@ -8,14 +8,14 @@ import { queryGraphQL } from './util'
 import * as GQL from '../../../../shared/src/graphql/schema'
 import { OTHER_CODE_ACTIONS } from './misc'
 
-export function registerImportStar(): Unsubscribable {
+export function registerNoInlineProps(): Unsubscribable {
     const subscriptions = new Subscription()
     subscriptions.add(startDiagnostics())
     subscriptions.add(sourcegraph.languages.registerCodeActionProvider(['*'], createCodeActionProvider()))
     return subscriptions
 }
 
-const mods = [{ binding: 'React', module: 'react' }, { binding: 'H', module: 'history' }]
+const ADJUST = 'React.FunctionComponent<'.length
 
 function startDiagnostics(): Unsubscribable {
     const subscriptions = new Subscription()
@@ -31,11 +31,11 @@ function startDiagnostics(): Unsubscribable {
                     const results = flatten(
                         await from(
                             sourcegraph.search.findTextInFiles(
-                                { pattern: 'import \\* as (React|H)', type: 'regexp' },
+                                { pattern: 'React\\.FunctionComponent<\\{', type: 'regexp' },
                                 {
                                     repositories: { includes: ['sourcegraph$'], type: 'regexp' },
                                     files: {
-                                        includes: ['^(web/src/org|browser/src/libs/phabricator)/.*\\.tsx?$'],
+                                        includes: ['^web/src/.*\\.tsx?$'],
                                         type: 'regexp',
                                     },
                                     maxResults: 5,
@@ -49,17 +49,13 @@ function startDiagnostics(): Unsubscribable {
                         results.map(async ({ uri }) => {
                             const { text } = await sourcegraph.workspace.openTextDocument(new URL(uri))
                             const diagnostics: sourcegraph.Diagnostic[] = flatten(
-                                mods.map(({ binding, module }) =>
-                                    findMatchRanges(text, binding, module).map(
-                                        range =>
-                                            ({
-                                                message:
-                                                    'Unnecessary `import * as ...` of module that has default export',
-                                                range,
-                                                severity: sourcegraph.DiagnosticSeverity.Information,
-                                                code: JSON.stringify({ binding, module }),
-                                            } as sourcegraph.Diagnostic)
-                                    )
+                                findMatchRanges(text).map(
+                                    range =>
+                                        ({
+                                            message: 'Use named interface Props instead of inline type for consistency',
+                                            range,
+                                            severity: sourcegraph.DiagnosticSeverity.Information,
+                                        } as sourcegraph.Diagnostic)
                                 )
                             )
                             return [new URL(uri), diagnostics] as [URL, sourcegraph.Diagnostic[]]
@@ -85,30 +81,24 @@ function createCodeActionProvider(): sourcegraph.CodeActionProvider {
 
             const fixEdits = new sourcegraph.WorkspaceEdit()
             for (const diag of context.diagnostics) {
-                const { binding, module } = JSON.parse(diag.code as string)
-                for (const range of findMatchRanges(doc.text, binding, module)) {
-                    fixEdits.replace(new URL(doc.uri), range, `import ${binding} from '${module}'`)
-                }
+                const typeBody = doc.text.slice(doc.offsetAt(diag.range.start), doc.offsetAt(diag.range.end))
+                fixEdits.insert(
+                    new URL(doc.uri),
+                    new sourcegraph.Position(diag.range.start.line, 0),
+                    `interface Props ${typeBody}\n\n`
+                )
+                fixEdits.replace(new URL(doc.uri), diag.range, 'Props')
             }
 
             const disableRuleEdits = new sourcegraph.WorkspaceEdit()
             for (const diag of context.diagnostics) {
-                const { binding, module } = JSON.parse(diag.code as string)
-                for (const range of findMatchRanges(doc.text, binding, module)) {
-                    disableRuleEdits.insert(
-                        new URL(doc.uri),
-                        range.end,
-                        ' // sourcegraph:ignore-line React lint https://sourcegraph.example.com/ofYRz6NFzj'
-                    )
-                }
+                disableRuleEdits.insert(
+                    new URL(doc.uri),
+                    new sourcegraph.Position(diag.range.start.line, 0),
+                    '// sourcegraph:ignore-next-line React lint https://sourcegraph.example.com/ofYRz6NFzj\n'
+                )
             }
 
-            // for (const [uri, diags] of sourcegraph.languages.getDiagnostics()) {
-            //     const doc = await sourcegraph.workspace.openTextDocument(uri)
-            //     for (const range of findMatchRanges(doc.text)) {
-            //         workspaceEdit.replace(new URL(doc.uri), range, "import React from 'react'")
-            //     }
-            // }
             return [
                 {
                     title: 'Convert to named import',
@@ -124,22 +114,18 @@ function createCodeActionProvider(): sourcegraph.CodeActionProvider {
                         sourcegraph.languages.getDiagnostics().map(([uri, diagnostics]) => diagnostics)
                     ),
                 },
-                {
-                    title: `View npm package: ${JSON.parse(context.diagnostics[0].code as string).module}`,
-                    command: { title: '', command: 'TODO!(sqs)' },
-                },
                 ...OTHER_CODE_ACTIONS,
             ]
         },
     }
 }
 
-function findMatchRanges(text: string, binding: string, module: string): sourcegraph.Range[] {
+function findMatchRanges(text: string): sourcegraph.Range[] {
     const ranges: sourcegraph.Range[] = []
     for (const [i, line] of text.split('\n').entries()) {
-        const pat = new RegExp(`^import \\* as ${binding} from '${module}'$`, 'g')
+        const pat = /React\.FunctionComponent<(\{[^}]*\})>/gm
         for (let match = pat.exec(line); !!match; match = pat.exec(line)) {
-            ranges.push(new sourcegraph.Range(i, match.index, i, match.index + match[0].length))
+            ranges.push(new sourcegraph.Range(i, match.index + ADJUST, i, match.index + match[0].length - 1))
         }
     }
     return ranges

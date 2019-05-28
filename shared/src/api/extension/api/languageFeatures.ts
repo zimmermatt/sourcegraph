@@ -107,7 +107,10 @@ export class ExtLanguageFeatures {
                     Selection.isSelection(rangeOrSelection)
                         ? Selection.fromPlain(rangeOrSelection)
                         : Range.fromPlain(rangeOrSelection),
-                    context
+                    {
+                        ...context,
+                        diagnostics: context.diagnostics.map(d => ({ ...d, range: Range.fromPlain(d.range) })),
+                    }
                 ),
                 (items: null | undefined | (CodeAction & { edit?: WorkspaceEdit })[]) =>
                     items ? items.map(fromCodeAction) : items

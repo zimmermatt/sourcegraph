@@ -29,7 +29,7 @@ export const ThreadInboxPage: React.FunctionComponent<Props> = ({
 }) => (
     <div className="thread-inbox-page">
         <WithQueryParameter
-            defaultQuery={threadsQueryWithValues('', { is: ['open'] })}
+            defaultQuery={/*threadsQueryWithValues('', { is: ['open'] })*/ ''}
             history={props.history}
             location={props.location}
         >

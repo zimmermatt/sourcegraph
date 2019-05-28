@@ -1,6 +1,8 @@
 import * as sourcegraph from 'sourcegraph'
-import { registerDemo0 as registerImportStarFixups } from './importStar'
+import { registerImportStar } from './importStar'
+import { registerNoInlineProps } from './noInlineProps'
 
 export function activate(ctx: sourcegraph.ExtensionContext): void {
-    ctx.subscriptions.add(registerImportStarFixups())
+    // ctx.subscriptions.add(registerImportStar())
+    ctx.subscriptions.add(registerNoInlineProps())
 }

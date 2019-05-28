@@ -239,7 +239,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                     ) : (
                         <div className="d-flex">
                             <Resizable
-                                className="sticky-top border-right d-none"
+                                className="sticky-top border-right"
                                 handlePosition="right"
                                 storageKey="thread-inbox-items-list__sidebar-resizable"
                                 defaultSize={216 /* px */}
