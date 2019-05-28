@@ -5,16 +5,16 @@ import React, { useEffect, useState } from 'react'
 import { from, Subscription } from 'rxjs'
 import { catchError, map, startWith } from 'rxjs/operators'
 import * as sourcegraph from 'sourcegraph'
-import { LinkOrSpan } from '../../../../../../shared/src/components/LinkOrSpan'
-import { displayRepoName } from '../../../../../../shared/src/components/RepoFileLink'
-import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
-import * as GQL from '../../../../../../shared/src/graphql/schema'
-import { PlatformContextProps } from '../../../../../../shared/src/platform/context'
-import { asError, ErrorLike, isErrorLike } from '../../../../../../shared/src/util/errors'
-import { makeRepoURI } from '../../../../../../shared/src/util/url'
-import { DiagnosticSeverityIcon } from '../../../../diagnostics/components/DiagnosticSeverityIcon'
-import { ThreadSettings } from '../../settings'
-import { ThreadInboxItemActions } from './ThreadInboxItemActions'
+import { LinkOrSpan } from '../../../../../../../shared/src/components/LinkOrSpan'
+import { displayRepoName } from '../../../../../../../shared/src/components/RepoFileLink'
+import { ExtensionsControllerProps } from '../../../../../../../shared/src/extensions/controller'
+import * as GQL from '../../../../../../../shared/src/graphql/schema'
+import { PlatformContextProps } from '../../../../../../../shared/src/platform/context'
+import { asError, ErrorLike, isErrorLike } from '../../../../../../../shared/src/util/errors'
+import { makeRepoURI } from '../../../../../../../shared/src/util/url'
+import { DiagnosticSeverityIcon } from '../../../../../diagnostics/components/DiagnosticSeverityIcon'
+import { ThreadSettings } from '../../../settings'
+import { ThreadInboxItemActions } from './actions/ThreadInboxItemActions'
 import { WorkspaceEditPreview } from './WorkspaceEditPreview'
 
 export interface DiagnosticInfo extends sourcegraph.Diagnostic {
@@ -95,7 +95,7 @@ export const ThreadInboxFileItem: React.FunctionComponent<Props> = ({
         <div className={`card border ${className}`}>
             <header className={`card-header d-flex align-items-start ${headerClassName}`} style={headerStyle}>
                 <div className="flex-1">
-                    <h3 className="mb-0 h6 small">
+                    <h3 className="mb-0 h6">
                         <LinkOrSpan to={diagnostic.entry.url || 'TODO!(sqs)'} className="d-block">
                             {diagnostic.entry.path ? (
                                 <>
@@ -126,7 +126,7 @@ export const ThreadInboxFileItem: React.FunctionComponent<Props> = ({
                     )}
                     </div>*/}
             </header>
-            <div className="d-flex align-items-center mt-2 mx-2 mb-1 small">
+            <div className="d-flex align-items-center mt-2 mx-2 mb-1">
                 <DiagnosticSeverityIcon severity={diagnostic.severity} className="icon-inline mr-1" />
                 <span>{diagnostic.message}</span>
             </div>
@@ -141,8 +141,8 @@ export const ThreadInboxFileItem: React.FunctionComponent<Props> = ({
                         codeActions={codeActionsOrError}
                         activeCodeAction={activeCodeAction}
                         onCodeActionActivate={setActiveCodeAction}
-                        className="small px-2 pt-2 pb-0"
-                        buttonClassName="btn btn-sm px-1 py-0 text-decoration-none"
+                        className="px-2 pt-2 pb-0"
+                        buttonClassName="btn px-1 py-0 text-decoration-none"
                         inactiveButtonClassName="btn-link"
                         activeButtonClassName="btn-primary"
                         extensionsController={extensionsController}

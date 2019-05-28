@@ -16,7 +16,7 @@ import { useEffectAsync } from '../../../../util/useEffectAsync'
 import { QueryParameterProps } from '../../components/withQueryParameter/WithQueryParameter'
 import { ThreadSettings } from '../../settings'
 import { ThreadInboxSidebar } from './sidebar/ThreadInboxSidebar'
-import { DiagnosticInfo, ThreadInboxFileItem } from './ThreadInboxFileItem'
+import { DiagnosticInfo, ThreadInboxFileItem } from './item/ThreadInboxFileItem'
 import { memoizeObservable } from '../../../../../../shared/src/util/memoizeObservable'
 
 // TODO!(sqs): use relative path/rev for DiscussionThreadTargetRepo

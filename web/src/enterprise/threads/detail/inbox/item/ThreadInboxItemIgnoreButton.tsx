@@ -2,10 +2,10 @@ import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import BackupRestoreIcon from 'mdi-react/BackupRestoreIcon'
 import WindowCloseIcon from 'mdi-react/WindowCloseIcon'
 import React, { useCallback, useState } from 'react'
-import { NotificationType } from '../../../../../../shared/src/api/client/services/notifications'
-import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
-import * as GQL from '../../../../../../shared/src/graphql/schema'
-import { fetchDiscussionThreadAndComments, updateTargetInThread } from '../../../../discussions/backend'
+import { NotificationType } from '../../../../../../../shared/src/api/client/services/notifications'
+import { ExtensionsControllerProps } from '../../../../../../../shared/src/extensions/controller'
+import * as GQL from '../../../../../../../shared/src/graphql/schema'
+import { fetchDiscussionThreadAndComments, updateTargetInThread } from '../../../../../discussions/backend'
 
 interface Props {
     inboxItem: Pick<GQL.IDiscussionThreadTargetRepo, 'id' | 'isIgnored'>

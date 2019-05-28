@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { DropdownItem, DropdownMenu, DropdownMenuProps } from 'reactstrap'
-import { asError, ErrorLike, isErrorLike } from '../../../../../../../../shared/src/util/errors'
+import { asError, ErrorLike, isErrorLike } from '../../../../../../../../../shared/src/util/errors'
 
 interface Props extends Pick<DropdownMenuProps, 'right'> {}
 
@@ -52,11 +52,7 @@ export const SlackMessageDropdownMenu: React.FunctionComponent<Props> = ({ ...pr
                         Open in Slack...
                     </DropdownItem>
                     {recipientsOrError.slice(0, MAX_ITEMS).map(({ label, detail }, i) => (
-                        <DropdownItem
-                            key={i}
-                            // tslint:disable-next-line: jsx-no-lambda
-                            className="d-flex justify-content-between"
-                        >
+                        <DropdownItem key={i} className="d-flex justify-content-between">
                             {label} <span className="text-muted ml-3">{detail}</span>
                         </DropdownItem>
                     ))}

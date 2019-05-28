@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react'
 import { DropdownItem, DropdownMenu, DropdownMenuProps } from 'reactstrap'
-import { displayRepoName } from '../../../../../../../../shared/src/components/RepoFileLink'
-import * as GQL from '../../../../../../../../shared/src/graphql/schema'
-import { asError, ErrorLike, isErrorLike } from '../../../../../../../../shared/src/util/errors'
-import { PullRequest, ThreadSettings } from '../../../../settings'
+import { displayRepoName } from '../../../../../../../../../shared/src/components/RepoFileLink'
+import * as GQL from '../../../../../../../../../shared/src/graphql/schema'
+import { asError, ErrorLike, isErrorLike } from '../../../../../../../../../shared/src/util/errors'
+import { PullRequest, ThreadSettings } from '../../../../../settings'
 
 interface Props extends Pick<DropdownMenuProps, 'right'> {
     threadSettings: ThreadSettings

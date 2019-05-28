@@ -2,7 +2,7 @@ import React, { useCallback } from 'react'
 import { DiagnosticSeverity } from 'sourcegraph'
 import { Form } from '../../../../../components/Form'
 import { QueryParameterProps } from '../../../components/withQueryParameter/WithQueryParameter'
-import { DiagnosticInfo } from '../ThreadInboxFileItem'
+import { DiagnosticInfo } from '../item/ThreadInboxFileItem'
 import { ThreadInboxSidebarFilterListDiagnosticItem } from './ThreadInboxSidebarFilterListDiagnosticItem'
 import { ThreadInboxSidebarFilterListPathItem } from './ThreadInboxSidebarFilterListPathItem'
 

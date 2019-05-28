@@ -126,12 +126,24 @@ function createCodeActionProvider(): sourcegraph.CodeActionProvider {
                 {
                     title: 'Open tsconfig.json',
                     command: {
-                        title: 'Open tsconfig.json',
+                        title: '',
                         command: 'open',
                         arguments: [
                             'http://localhost:3080/github.com/sourcegraph/sourcegraph/-/blob/web/tsconfig.json',
                         ],
                     },
+                },
+                {
+                    title: 'Start discussion thread',
+                    command: { title: '', command: 'TODO!(sqs)' },
+                },
+                {
+                    title: 'Message code owner: @tsenart',
+                    command: { title: '', command: 'TODO!(sqs)' },
+                },
+                {
+                    title: `View npm package: ${JSON.parse(context.diagnostics[0].code as string).module}`,
+                    command: { title: '', command: 'TODO!(sqs)' },
                 },
             ]
         },

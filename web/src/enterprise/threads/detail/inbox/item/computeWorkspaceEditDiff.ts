@@ -1,8 +1,8 @@
 import { applyEdits } from '@sqs/jsonc-parser'
 import { createTwoFilesPatch } from 'diff'
 import { WorkspaceEdit } from 'sourcegraph'
-import { positionToOffset } from '../../../../../../shared/src/api/client/types/textDocument'
-import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
+import { positionToOffset } from '../../../../../../../shared/src/api/client/types/textDocument'
+import { ExtensionsControllerProps } from '../../../../../../../shared/src/extensions/controller'
 
 export async function computeWorkspaceEditDiff(
     { services: { fileSystem } }: ExtensionsControllerProps['extensionsController'],

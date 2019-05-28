@@ -1,11 +1,11 @@
 import SourcePullIcon from 'mdi-react/SourcePullIcon'
 import React, { useCallback, useState } from 'react'
 import { ButtonDropdown, DropdownToggle } from 'reactstrap'
-import { NotificationType } from '../../../../../../../../shared/src/api/client/services/notifications'
-import { ExtensionsControllerProps } from '../../../../../../../../shared/src/extensions/controller'
-import * as GQL from '../../../../../../../../shared/src/graphql/schema'
-import { updateThreadSettings } from '../../../../../../discussions/backend'
-import { PullRequest, ThreadSettings } from '../../../../settings'
+import { NotificationType } from '../../../../../../../../../shared/src/api/client/services/notifications'
+import { ExtensionsControllerProps } from '../../../../../../../../../shared/src/extensions/controller'
+import * as GQL from '../../../../../../../../../shared/src/graphql/schema'
+import { updateThreadSettings } from '../../../../../../../discussions/backend'
+import { PullRequest, ThreadSettings } from '../../../../../settings'
 import { PullRequestDropdownMenu } from './PullRequestDropdownMenu'
 
 interface Props {
