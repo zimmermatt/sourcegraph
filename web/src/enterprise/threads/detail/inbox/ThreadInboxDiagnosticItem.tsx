@@ -142,9 +142,9 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
                         activeCodeAction={activeCodeAction}
                         onCodeActionActivate={setActiveCodeAction}
                         className="border-top small px-2 pt-2 pb-0"
-                        buttonClassName="btn btn-sm px-1 py-0"
-                        inactiveButtonClassName="btn-outline-link"
-                        activeButtonClassName="btn-primary text-white"
+                        buttonClassName="btn btn-sm px-1 py-0 text-decoration-none"
+                        inactiveButtonClassName="btn-link"
+                        activeButtonClassName="btn-success"
                         extensionsController={extensionsController}
                     />
                     {activeCodeAction ? (

@@ -1,4 +1,6 @@
 import H from 'history'
+import CheckboxBlankCirckeOutlineIcon from 'mdi-react/CheckboxBlankCircleOutlineIcon'
+import CheckboxMarkedCircleOutlineIcon from 'mdi-react/CheckboxMarkedCircleOutlineIcon'
 import PlayCircleOutlineIcon from 'mdi-react/PlayCircleOutlineIcon'
 import React from 'react'
 import { CodeAction } from 'sourcegraph'
@@ -42,17 +44,30 @@ export const ThreadInboxItemActions: React.FunctionComponent<Props> = ({
             {/* <PlayCircleOutlineIcon className="icon-inline text-muted mr-2 mb-2" aria-label="Actions" /> */}
             {/* <PlayCircleOutlineIcon className="icon-inline text-muted mr-2 mb-2" aria-label="Actions" /> */}
             <label className="mr-2 mb-2 text-muted">Fix:</label>
-            {codeActions.map((codeAction, i) => (
-                <button
-                    key={i}
-                    onClick={() => onCodeActionClick(codeAction)}
-                    className={`${buttonClassName} ${
-                        codeAction === activeCodeAction ? activeButtonClassName : inactiveButtonClassName
-                    } mr-2 mb-2`}
-                >
-                    {codeAction.title}
-                </button>
-            ))}
+            <div className="btn-group btn-group-toggle" data-toggle="buttons">
+                {codeActions.map((codeAction, i) => (
+                    <label
+                        key={i}
+                        className={`d-flex align-items-center ${buttonClassName} ${
+                            codeAction === activeCodeAction ? activeButtonClassName : inactiveButtonClassName
+                        } mr-2 mb-2`}
+                        style={{ cursor: 'pointer' }}
+                    >
+                        <input
+                            type="radio"
+                            autoComplete="off"
+                            checked={codeAction === activeCodeAction}
+                            onClick={() => onCodeActionClick(codeAction)}
+                        />{' '}
+                        {codeAction === activeCodeAction ? (
+                            <CheckboxMarkedCircleOutlineIcon className="icon-inline small mr-1" />
+                        ) : (
+                            <CheckboxBlankCirckeOutlineIcon className="icon-inline small mr-1" />
+                        )}{' '}
+                        {codeAction.title}
+                    </label>
+                ))}
+            </div>
         </div>
     )
 }
