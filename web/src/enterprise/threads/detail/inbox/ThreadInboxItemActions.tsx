@@ -40,7 +40,8 @@ export const ThreadInboxItemActions: React.FunctionComponent<Props> = ({
     return (
         <div className={`d-flex align-items-center ${className}`}>
             {/* <PlayCircleOutlineIcon className="icon-inline text-muted mr-2 mb-2" aria-label="Actions" /> */}
-            <label className="mr-2 mb-2 text-muted">Actions:</label>
+            {/* <PlayCircleOutlineIcon className="icon-inline text-muted mr-2 mb-2" aria-label="Actions" /> */}
+            <label className="mr-2 mb-2 text-muted">Fix:</label>
             {codeActions.map((codeAction, i) => (
                 <button
                     key={i}
