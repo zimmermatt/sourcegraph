@@ -1,3 +1,4 @@
+import { Range } from '@sourcegraph/extension-api-classes'
 import { from, Observable } from 'rxjs'
 import { map, mapTo, startWith, switchMap } from 'rxjs/operators'
 import * as sourcegraph from 'sourcegraph'
@@ -6,7 +7,7 @@ import { gql } from '../../../../../shared/src/graphql/graphql'
 import * as GQL from '../../../../../shared/src/graphql/schema'
 import { createAggregateError } from '../../../../../shared/src/util/errors'
 import { memoizeObservable } from '../../../../../shared/src/util/memoizeObservable'
-import { parseRepoURI } from '../../../../../shared/src/util/url'
+import { makeRepoURI, parseRepoURI } from '../../../../../shared/src/util/url'
 import { queryGraphQL } from '../../../backend/graphql'
 
 export interface DiagnosticInfo extends sourcegraph.Diagnostic {
@@ -85,3 +86,22 @@ export const getDiagnosticInfos = (
             })
         })
     )
+
+export const getCodeActions = (
+    diagnostic: DiagnosticInfo,
+    extensionsController: ExtensionsControllerProps['extensionsController']
+): Observable<sourcegraph.CodeAction[]> =>
+    from(
+        extensionsController.services.codeActions.getCodeActions({
+            textDocument: {
+                uri: makeRepoURI({
+                    repoName: diagnostic.entry.repository.name,
+                    rev: diagnostic.entry.commit.oid,
+                    commitID: diagnostic.entry.commit.oid,
+                    filePath: diagnostic.entry.path,
+                }),
+            },
+            range: Range.fromPlain(diagnostic.range),
+            context: { diagnostics: [diagnostic] },
+        })
+    ).pipe(map(codeActions => codeActions || []))

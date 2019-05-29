@@ -2,7 +2,7 @@ import React from 'react'
 import { DiagnosticSeverity } from 'sourcegraph'
 import { TreeFilterSidebar } from '../../../components/treeFilterSidebar/TreeFilterSidebar'
 import { QueryParameterProps } from '../../../components/withQueryParameter/WithQueryParameter'
-import { DiagnosticInfo } from '../item/ThreadInboxFileItem'
+import { DiagnosticInfo } from '../item/ThreadChangedFileItem'
 
 interface Props extends QueryParameterProps {
     diagnostics: DiagnosticInfo[]

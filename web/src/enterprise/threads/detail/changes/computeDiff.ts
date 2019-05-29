@@ -6,7 +6,7 @@ import { ExtensionsControllerProps } from '../../../../../../shared/src/extensio
 import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { propertyIsDefined } from '../../../../../../shared/src/util/types'
 
-interface FileDiff extends Pick<GQL.IFileDiff, 'oldPath' | 'newPath'> {
+export interface FileDiff extends Pick<GQL.IFileDiff, 'oldPath' | 'newPath'> {
     hunks: GQL.IFileDiffHunk[]
 }
 

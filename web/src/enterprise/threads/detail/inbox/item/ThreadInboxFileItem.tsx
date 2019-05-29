@@ -16,7 +16,7 @@ import { DiagnosticSeverityIcon } from '../../../../../diagnostics/components/Di
 import { ThreadSettings } from '../../../settings'
 import { ThreadInboxItemActions } from './actions/ThreadInboxItemActions'
 import { WorkspaceEditPreview } from './WorkspaceEditPreview'
-import { DiagnosticInfo } from '../../backend'
+import { DiagnosticInfo, getCodeActions } from '../../backend'
 
 const LOADING: 'loading' = 'loading'
 
@@ -52,22 +52,8 @@ export const ThreadInboxFileItem: React.FunctionComponent<Props> = ({
     useEffect(() => {
         const subscriptions = new Subscription()
         subscriptions.add(
-            from(
-                extensionsController.services.codeActions.getCodeActions({
-                    textDocument: {
-                        uri: makeRepoURI({
-                            repoName: diagnostic.entry.repository.name,
-                            rev: diagnostic.entry.commit.oid,
-                            commitID: diagnostic.entry.commit.oid,
-                            filePath: diagnostic.entry.path,
-                        }),
-                    },
-                    range: Range.fromPlain(diagnostic.range),
-                    context: { diagnostics: [diagnostic] },
-                })
-            )
+            getCodeActions(diagnostic, extensionsController)
                 .pipe(
-                    map(codeActions => codeActions || []),
                     catchError(err => [asError(err)]),
                     startWith(LOADING)
                 )
