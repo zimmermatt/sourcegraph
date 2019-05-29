@@ -40,7 +40,7 @@ function startDiagnostics(): Unsubscribable {
                                         includes: ['^(web/src/org|browser/src/libs/phabricator)/.*\\.tsx?$'],
                                         type: 'regexp',
                                     },
-                                    maxResults: 5,
+                                    maxResults: 2,
                                 }
                             )
                         )

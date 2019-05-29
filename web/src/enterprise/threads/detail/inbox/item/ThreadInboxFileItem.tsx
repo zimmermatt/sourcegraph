@@ -1,9 +1,8 @@
-import { Range } from '@sourcegraph/extension-api-classes'
 import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import H from 'history'
 import React, { useEffect, useState, useCallback } from 'react'
-import { from, Subscription } from 'rxjs'
-import { catchError, map, startWith } from 'rxjs/operators'
+import { Subscription } from 'rxjs'
+import { catchError, startWith } from 'rxjs/operators'
 import * as sourcegraph from 'sourcegraph'
 import { LinkOrSpan } from '../../../../../../../shared/src/components/LinkOrSpan'
 import { displayRepoName } from '../../../../../../../shared/src/components/RepoFileLink'
@@ -11,10 +10,9 @@ import { ExtensionsControllerProps } from '../../../../../../../shared/src/exten
 import * as GQL from '../../../../../../../shared/src/graphql/schema'
 import { PlatformContextProps } from '../../../../../../../shared/src/platform/context'
 import { asError, ErrorLike, isErrorLike } from '../../../../../../../shared/src/util/errors'
-import { makeRepoURI } from '../../../../../../../shared/src/util/url'
 import { DiagnosticSeverityIcon } from '../../../../../diagnostics/components/DiagnosticSeverityIcon'
 import { ThreadSettings } from '../../../settings'
-import { DiagnosticInfo, getCodeActions } from '../../backend'
+import { DiagnosticInfo, getCodeActions, diagnosticID, codeActionID, getActiveCodeAction0 } from '../../backend'
 import { ThreadInboxItemActions } from './actions/ThreadInboxItemActions'
 import { WorkspaceEditPreview } from './WorkspaceEditPreview'
 import { updateThreadSettings } from '../../../../../discussions/backend'
@@ -33,8 +31,6 @@ interface Props extends ExtensionsControllerProps, PlatformContextProps {
     history: H.History
     location: H.Location
 }
-
-const codeActionID = (codeAction: sourcegraph.CodeAction): string => codeAction.title // TODO!(sqs): codeAction.title is not guaranteed unique
 
 /**
  * An inbox item in a thread that refers to a file.
@@ -68,37 +64,25 @@ export const ThreadInboxFileItem: React.FunctionComponent<Props> = ({
         return () => subscriptions.unsubscribe()
     }, [diagnostic, extensionsController])
 
-    const diagnosticID = `${diagnostic.entry.path}:${diagnostic.range.start.line}:${diagnostic.range.start.character}:${
-        diagnostic.message
-    }`
-    const activeCodeActionID = threadSettings && threadSettings.actions && threadSettings.actions[diagnosticID]
-
-    const [activeCodeAction, setActiveCodeAction] = useState<sourcegraph.CodeAction | undefined>()
-    useEffect(() => {
-        setActiveCodeAction(
-            codeActionsOrError !== LOADING && !isErrorLike(codeActionsOrError) && codeActionsOrError.length > 0
-                ? (activeCodeActionID !== undefined &&
-                      codeActionsOrError.find(a => codeActionID(a) === activeCodeActionID)) ||
-                      codeActionsOrError[0]
-                : undefined
-        )
-    }, [codeActionsOrError, diagnosticID])
-
     const onCodeActionActivate = useCallback(
         async (codeAction: sourcegraph.CodeAction | undefined) => {
-            setActiveCodeAction(codeAction)
             onThreadUpdate(
                 await updateThreadSettings(thread, {
                     ...threadSettings,
                     actions: {
                         ...threadSettings.actions,
-                        [diagnosticID]: codeAction ? codeActionID(codeAction) : undefined,
+                        [diagnosticID(diagnostic)]: codeAction ? codeActionID(codeAction) : undefined,
                     },
                 })
             )
         },
-        [diagnosticID]
+        [diagnostic]
     )
+
+    const activeCodeAction =
+        codeActionsOrError !== LOADING && !isErrorLike(codeActionsOrError)
+            ? getActiveCodeAction0(diagnostic, threadSettings, codeActionsOrError)
+            : undefined
 
     return (
         <div className={`card border ${className}`}>

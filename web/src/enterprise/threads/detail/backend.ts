@@ -9,6 +9,7 @@ import { createAggregateError } from '../../../../../shared/src/util/errors'
 import { memoizeObservable } from '../../../../../shared/src/util/memoizeObservable'
 import { makeRepoURI, parseRepoURI } from '../../../../../shared/src/util/url'
 import { queryGraphQL } from '../../../backend/graphql'
+import { ThreadSettings } from '../settings'
 
 export interface DiagnosticInfo extends sourcegraph.Diagnostic {
     entry: Pick<GQL.ITreeEntry, 'path' | 'isDirectory' | 'url'> & {
@@ -105,3 +106,27 @@ export const getCodeActions = (
             context: { diagnostics: [diagnostic] },
         })
     ).pipe(map(codeActions => codeActions || []))
+
+export const diagnosticID = (diagnostic: DiagnosticInfo): string =>
+    `${diagnostic.entry.path}:${diagnostic.range.start.line}:${diagnostic.range.start.character}:${diagnostic.message}`
+
+export const codeActionID = (codeAction: sourcegraph.CodeAction): string => codeAction.title // TODO!(sqs): codeAction.title is not guaranteed unique
+
+export const getActiveCodeAction0 = (
+    diagnostic: DiagnosticInfo,
+    threadSettings: ThreadSettings,
+    codeActions: sourcegraph.CodeAction[]
+): sourcegraph.CodeAction | undefined => {
+    const activeCodeActionID =
+        threadSettings && threadSettings.actions && threadSettings.actions[diagnosticID(diagnostic)]
+    return codeActions.find(a => codeActionID(a) === activeCodeActionID) || codeActions[0]
+}
+
+export const getActiveCodeAction = (
+    diagnostic: DiagnosticInfo,
+    extensionsController: ExtensionsControllerProps['extensionsController'],
+    threadSettings: ThreadSettings
+): Observable<sourcegraph.CodeAction | undefined> =>
+    getCodeActions(diagnostic, extensionsController).pipe(
+        map(codeActions => getActiveCodeAction0(diagnostic, threadSettings, codeActions))
+    )

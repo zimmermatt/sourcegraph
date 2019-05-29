@@ -12,10 +12,11 @@ import { PlatformContextProps } from '../../../../../../shared/src/platform/cont
 import { asError, createAggregateError, ErrorLike, isErrorLike } from '../../../../../../shared/src/util/errors'
 import { QueryParameterProps } from '../../components/withQueryParameter/WithQueryParameter'
 import { ThreadSettings } from '../../settings'
-import { getCodeActions, getDiagnosticInfos, queryCandidateFiles } from '../backend'
+import { getCodeActions, getDiagnosticInfos, queryCandidateFiles, getActiveCodeAction } from '../backend'
 import { ThreadChangedFileItem } from './item/ThreadChangedFileItem'
 import { ThreadInboxSidebar } from './sidebar/ThreadChangesSidebar'
 import { computeDiff, FileDiff } from './computeDiff'
+import { isDefined } from '../../../../../../shared/src/util/types'
 
 interface Props extends QueryParameterProps, ExtensionsControllerProps, PlatformContextProps {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'title' | 'type' | 'settings'>
@@ -51,16 +52,18 @@ export const ThreadChangesList: React.FunctionComponent<Props> = ({
             getDiagnosticInfos(extensionsController)
                 .pipe(
                     switchMap(diagnostics =>
-                        combineLatest(diagnostics.map(d => getCodeActions(d, extensionsController)))
+                        combineLatest(
+                            diagnostics.map(d => getActiveCodeAction(d, extensionsController, threadSettings))
+                        )
                     ),
-                    switchMap(codeActions => computeDiff(extensionsController, flatten(codeActions))),
+                    switchMap(codeActions => computeDiff(extensionsController, codeActions.filter(isDefined))),
                     catchError(err => [asError(err)]),
                     startWith(LOADING)
                 )
                 .subscribe(setFileDiffsOrError)
         )
         return () => subscriptions.unsubscribe()
-    }, [thread.id, extensionsController])
+    }, [thread.id, threadSettings, extensionsController])
 
     return (
         <div className={`thread-changes-list ${className}`}>
