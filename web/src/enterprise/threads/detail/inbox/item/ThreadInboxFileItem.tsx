@@ -16,6 +16,7 @@ import { DiagnosticInfo, getCodeActions, diagnosticID, codeActionID, getActiveCo
 import { ThreadInboxItemActions } from './actions/ThreadInboxItemActions'
 import { WorkspaceEditPreview } from './WorkspaceEditPreview'
 import { updateThreadSettings } from '../../../../../discussions/backend'
+import FileOutlineIcon from 'mdi-react/FileOutlineIcon'
 
 const LOADING: 'loading' = 'loading'
 
@@ -87,7 +88,7 @@ export const ThreadInboxFileItem: React.FunctionComponent<Props> = ({
     return (
         <div className={`card border ${className}`}>
             <header className={`card-header d-flex align-items-start ${headerClassName}`} style={headerStyle}>
-                <div className="flex-1">
+                <div className="flex-1 d-flex align-items-center">
                     <h3 className="mb-0 h6">
                         <LinkOrSpan to={diagnostic.entry.url || 'TODO!(sqs)'} className="d-block">
                             {diagnostic.entry.path ? (
@@ -102,22 +103,7 @@ export const ThreadInboxFileItem: React.FunctionComponent<Props> = ({
                             )}
                         </LinkOrSpan>
                     </h3>
-                    {/* TODO!(sqs) <small className="text-muted">
-                        Changed {formatDistance(Date.parse(item.updatedAt), Date.now())} ago by{' '}
-                        <strong>{item.updatedBy}</strong>
-                            </small> */}
                 </div>
-                {/* TODO!(sqs)<div>
-                    {item.commentsCount > 0 && (
-                        <ul className="list-inline d-flex align-items-center">
-                            <li className="list-inline-item">
-                                <small className="text-muted">
-                                    <MessageOutlineIcon className="icon-inline" /> {item.commentsCount}
-                                </small>
-                            </li>
-                        </ul>
-                    )}
-                    </div>*/}
             </header>
             <div className="d-flex align-items-center mt-2 mx-2 mb-1">
                 <DiagnosticSeverityIcon severity={diagnostic.severity} className="icon-inline mr-1" />

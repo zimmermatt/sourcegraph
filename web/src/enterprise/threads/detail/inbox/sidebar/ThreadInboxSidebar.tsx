@@ -1,5 +1,6 @@
 import React from 'react'
 import { DiagnosticSeverity } from 'sourcegraph'
+import * as GQL from '../../../../../../../shared/src/graphql/schema'
 import { TreeFilterSidebar } from '../../../components/treeFilterSidebar/TreeFilterSidebar'
 import { QueryParameterProps } from '../../../components/withQueryParameter/WithQueryParameter'
 import { DiagnosticInfo } from '../../backend'
