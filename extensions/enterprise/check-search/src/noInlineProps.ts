@@ -17,6 +17,8 @@ export function registerNoInlineProps(): Unsubscribable {
 
 const ADJUST = 'React.FunctionComponent<'.length
 
+const CODE_NO_INLINE_PROPS = 'NO_INLINE_PROPS'
+
 function startDiagnostics(): Unsubscribable {
     const subscriptions = new Subscription()
 
@@ -55,6 +57,7 @@ function startDiagnostics(): Unsubscribable {
                                             message: 'Use named interface Props instead of inline type for consistency',
                                             range,
                                             severity: sourcegraph.DiagnosticSeverity.Information,
+                                            code: CODE_NO_INLINE_PROPS,
                                         } as sourcegraph.Diagnostic)
                                 )
                             )
@@ -75,33 +78,30 @@ function startDiagnostics(): Unsubscribable {
 function createCodeActionProvider(): sourcegraph.CodeActionProvider {
     return {
         provideCodeActions: async (doc, _rangeOrSelection, context): Promise<sourcegraph.CodeAction[]> => {
-            if (context.diagnostics.length === 0) {
+            const diag = context.diagnostics.find(d => d.code === CODE_NO_INLINE_PROPS)
+            if (!diag) {
                 return []
             }
 
             const fixEdits = new sourcegraph.WorkspaceEdit()
-            for (const diag of context.diagnostics) {
-                const typeBody = doc.text.slice(doc.offsetAt(diag.range.start), doc.offsetAt(diag.range.end))
-                fixEdits.insert(
-                    new URL(doc.uri),
-                    new sourcegraph.Position(diag.range.start.line, 0),
-                    `interface Props ${typeBody}\n\n`
-                )
-                fixEdits.replace(new URL(doc.uri), diag.range, 'Props')
-            }
+            const typeBody = doc.text.slice(doc.offsetAt(diag.range.start), doc.offsetAt(diag.range.end))
+            fixEdits.insert(
+                new URL(doc.uri),
+                new sourcegraph.Position(diag.range.start.line, 0),
+                `interface Props ${typeBody}\n\n`
+            )
+            fixEdits.replace(new URL(doc.uri), diag.range, 'Props')
 
             const disableRuleEdits = new sourcegraph.WorkspaceEdit()
-            for (const diag of context.diagnostics) {
-                disableRuleEdits.insert(
-                    new URL(doc.uri),
-                    new sourcegraph.Position(diag.range.start.line, 0),
-                    '// sourcegraph:ignore-next-line React lint https://sourcegraph.example.com/ofYRz6NFzj\n'
-                )
-            }
+            disableRuleEdits.insert(
+                new URL(doc.uri),
+                new sourcegraph.Position(diag.range.start.line, 0),
+                '// sourcegraph:ignore-next-line React lint https://sourcegraph.example.com/ofYRz6NFzj\n'
+            )
 
             return [
                 {
-                    title: 'Convert to named import',
+                    title: 'Extract Props type',
                     edit: fixEdits,
                     diagnostics: flatten(
                         sourcegraph.languages.getDiagnostics().map(([uri, diagnostics]) => diagnostics)

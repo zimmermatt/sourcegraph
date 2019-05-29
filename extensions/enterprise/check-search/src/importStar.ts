@@ -17,6 +17,8 @@ export function registerImportStar(): Unsubscribable {
 
 const mods = [{ binding: 'React', module: 'react' }, { binding: 'H', module: 'history' }]
 
+const CODE_IMPORT_STAR = 'IMPORT_STAR'
+
 function startDiagnostics(): Unsubscribable {
     const subscriptions = new Subscription()
 
@@ -57,7 +59,7 @@ function startDiagnostics(): Unsubscribable {
                                                     'Unnecessary `import * as ...` of module that has default export',
                                                 range,
                                                 severity: sourcegraph.DiagnosticSeverity.Information,
-                                                code: JSON.stringify({ binding, module }),
+                                                code: CODE_IMPORT_STAR + ':' + JSON.stringify({ binding, module }),
                                             } as sourcegraph.Diagnostic)
                                     )
                                 )
@@ -79,28 +81,27 @@ function startDiagnostics(): Unsubscribable {
 function createCodeActionProvider(): sourcegraph.CodeActionProvider {
     return {
         provideCodeActions: async (doc, _rangeOrSelection, context): Promise<sourcegraph.CodeAction[]> => {
-            if (context.diagnostics.length === 0) {
+            const diag = context.diagnostics.find(
+                d => typeof d.code === 'string' && d.code.startsWith(CODE_IMPORT_STAR + ':')
+            )
+            if (!diag) {
                 return []
             }
+            const { binding, module } = JSON.parse((diag.code as string).slice((CODE_IMPORT_STAR + ':').length))
 
             const fixEdits = new sourcegraph.WorkspaceEdit()
-            for (const diag of context.diagnostics) {
-                const { binding, module } = JSON.parse(diag.code as string)
-                for (const range of findMatchRanges(doc.text, binding, module)) {
-                    fixEdits.replace(new URL(doc.uri), range, `import ${binding} from '${module}'`)
-                }
+            for (const range of findMatchRanges(doc.text, binding, module)) {
+                fixEdits.replace(new URL(doc.uri), range, `import ${binding} from '${module}'`)
             }
 
             const disableRuleEdits = new sourcegraph.WorkspaceEdit()
-            for (const diag of context.diagnostics) {
-                const { binding, module } = JSON.parse(diag.code as string)
-                for (const range of findMatchRanges(doc.text, binding, module)) {
-                    disableRuleEdits.insert(
-                        new URL(doc.uri),
-                        range.end,
-                        ' // sourcegraph:ignore-line React lint https://sourcegraph.example.com/ofYRz6NFzj'
-                    )
-                }
+
+            for (const range of findMatchRanges(doc.text, binding, module)) {
+                disableRuleEdits.insert(
+                    new URL(doc.uri),
+                    range.end,
+                    ' // sourcegraph:ignore-line React lint https://sourcegraph.example.com/ofYRz6NFzj'
+                )
             }
 
             // for (const [uri, diags] of sourcegraph.languages.getDiagnostics()) {
@@ -125,7 +126,7 @@ function createCodeActionProvider(): sourcegraph.CodeActionProvider {
                     ),
                 },
                 {
-                    title: `View npm package: ${JSON.parse(context.diagnostics[0].code as string).module}`,
+                    title: `View npm package: ${module}`,
                     command: { title: '', command: 'TODO!(sqs)' },
                 },
                 ...OTHER_CODE_ACTIONS,
