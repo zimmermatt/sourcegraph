@@ -27,4 +27,5 @@ export interface ThreadSettings {
         branch?: string
         description?: string
     }
+    actions?: { [id: string]: string | undefined }
 }

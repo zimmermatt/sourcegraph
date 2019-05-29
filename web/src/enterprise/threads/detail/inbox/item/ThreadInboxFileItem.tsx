@@ -1,7 +1,7 @@
 import { Range } from '@sourcegraph/extension-api-classes'
 import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import H from 'history'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { from, Subscription } from 'rxjs'
 import { catchError, map, startWith } from 'rxjs/operators'
 import * as sourcegraph from 'sourcegraph'
@@ -14,9 +14,10 @@ import { asError, ErrorLike, isErrorLike } from '../../../../../../../shared/src
 import { makeRepoURI } from '../../../../../../../shared/src/util/url'
 import { DiagnosticSeverityIcon } from '../../../../../diagnostics/components/DiagnosticSeverityIcon'
 import { ThreadSettings } from '../../../settings'
+import { DiagnosticInfo, getCodeActions } from '../../backend'
 import { ThreadInboxItemActions } from './actions/ThreadInboxItemActions'
 import { WorkspaceEditPreview } from './WorkspaceEditPreview'
-import { DiagnosticInfo, getCodeActions } from '../../backend'
+import { updateThreadSettings } from '../../../../../discussions/backend'
 
 const LOADING: 'loading' = 'loading'
 
@@ -33,10 +34,15 @@ interface Props extends ExtensionsControllerProps, PlatformContextProps {
     location: H.Location
 }
 
+const codeActionID = (codeAction: sourcegraph.CodeAction): string => codeAction.title // TODO!(sqs): codeAction.title is not guaranteed unique
+
 /**
  * An inbox item in a thread that refers to a file.
  */
 export const ThreadInboxFileItem: React.FunctionComponent<Props> = ({
+    thread,
+    threadSettings,
+    onThreadUpdate,
     diagnostic,
     className = '',
     headerClassName = '',
@@ -62,14 +68,37 @@ export const ThreadInboxFileItem: React.FunctionComponent<Props> = ({
         return () => subscriptions.unsubscribe()
     }, [diagnostic, extensionsController])
 
+    const diagnosticID = `${diagnostic.entry.path}:${diagnostic.range.start.line}:${diagnostic.range.start.character}:${
+        diagnostic.message
+    }`
+    const activeCodeActionID = threadSettings && threadSettings.actions && threadSettings.actions[diagnosticID]
+
     const [activeCodeAction, setActiveCodeAction] = useState<sourcegraph.CodeAction | undefined>()
     useEffect(() => {
         setActiveCodeAction(
             codeActionsOrError !== LOADING && !isErrorLike(codeActionsOrError) && codeActionsOrError.length > 0
-                ? codeActionsOrError[0]
+                ? (activeCodeActionID !== undefined &&
+                      codeActionsOrError.find(a => codeActionID(a) === activeCodeActionID)) ||
+                      codeActionsOrError[0]
                 : undefined
         )
-    }, [codeActionsOrError])
+    }, [codeActionsOrError, diagnosticID])
+
+    const onCodeActionActivate = useCallback(
+        async (codeAction: sourcegraph.CodeAction | undefined) => {
+            setActiveCodeAction(codeAction)
+            onThreadUpdate(
+                await updateThreadSettings(thread, {
+                    ...threadSettings,
+                    actions: {
+                        ...threadSettings.actions,
+                        [diagnosticID]: codeAction ? codeActionID(codeAction) : undefined,
+                    },
+                })
+            )
+        },
+        [diagnosticID]
+    )
 
     return (
         <div className={`card border ${className}`}>
@@ -118,9 +147,12 @@ export const ThreadInboxFileItem: React.FunctionComponent<Props> = ({
                 <>
                     <ThreadInboxItemActions
                         {...props}
+                        thread={thread}
+                        onThreadUpdate={onThreadUpdate}
+                        threadSettings={threadSettings}
                         codeActions={codeActionsOrError}
                         activeCodeAction={activeCodeAction}
-                        onCodeActionActivate={setActiveCodeAction}
+                        onCodeActionActivate={onCodeActionActivate}
                         className="px-2 pt-2 pb-0"
                         buttonClassName="btn px-1 py-0 text-decoration-none"
                         inactiveButtonClassName="btn-link"
