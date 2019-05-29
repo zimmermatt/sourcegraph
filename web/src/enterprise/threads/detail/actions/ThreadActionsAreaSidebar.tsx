@@ -1,4 +1,5 @@
 import EmailOpenOutlineIcon from 'mdi-react/EmailOpenOutlineIcon'
+import PencilBoxIcon from 'mdi-react/PencilBoxIcon'
 import PlusBoxIcon from 'mdi-react/PlusBoxIcon'
 import SlackIcon from 'mdi-react/SlackIcon'
 import SourceCommitIcon from 'mdi-react/SourceCommitIcon'
@@ -53,6 +54,13 @@ export const ThreadActionsAreaSidebar: React.FunctionComponent<Props> = ({ areaU
                     activeClassName="active"
                 >
                     <EmailOpenOutlineIcon className="icon-inline" /> Email
+                </NavLink>
+                <NavLink
+                    to={`${areaURL}/editor`}
+                    className="list-group-item list-group-item-action p-2"
+                    activeClassName="active"
+                >
+                    <PencilBoxIcon className="icon-inline" /> Editor
                 </NavLink>
                 <NavLink
                     to={`${areaURL}/webhooks`}
