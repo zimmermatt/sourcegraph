@@ -16,6 +16,7 @@ import { discussionThreadTargetFieldsFragment } from '../../../../discussions/ba
 import { useEffectAsync } from '../../../../util/useEffectAsync'
 import { QueryParameterProps } from '../../components/withQueryParameter/WithQueryParameter'
 import { ThreadSettings } from '../../settings'
+import { getDiagnosticInfos, queryCandidateFiles } from '../backend'
 import { DiagnosticInfo, ThreadInboxFileItem } from './item/ThreadInboxFileItem'
 import { ThreadInboxSidebar } from './sidebar/ThreadChangesSidebar'
 
@@ -50,26 +51,8 @@ export const ThreadChangesList: React.FunctionComponent<Props> = ({
     useEffect(() => {
         const subscriptions = new Subscription()
         subscriptions.add(
-            from(extensionsController.services.diagnostics.collection.changes)
+            getDiagnosticInfos(extensionsController)
                 .pipe(
-                    mapTo(() => void 0),
-                    startWith(() => void 0),
-                    map(() => Array.from(extensionsController.services.diagnostics.collection.entries())),
-                    switchMap(async diagEntries => {
-                        const entries = await queryCandidateFiles(diagEntries.map(([url]) => url))
-                        const m = new Map<string, DiagnosticInfo['entry']>()
-                        for (const [url, entry] of entries) {
-                            m.set(url.toString(), entry)
-                        }
-                        return diagEntries.flatMap(([url, diag]) => {
-                            const entry = m.get(url.toString())
-                            if (!entry) {
-                                throw new Error(`no entry for url ${url}`)
-                            }
-                            // tslint:disable-next-line: no-object-literal-type-assertion
-                            return diag.map(d => ({ ...d, entry } as DiagnosticInfo))
-                        })
-                    }),
                     catchError(err => [asError(err)]),
                     startWith(LOADING)
                 )

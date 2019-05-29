@@ -16,13 +16,7 @@ import { DiagnosticSeverityIcon } from '../../../../../diagnostics/components/Di
 import { ThreadSettings } from '../../../settings'
 import { ThreadInboxItemActions } from './actions/ThreadInboxItemActions'
 import { WorkspaceEditPreview } from './WorkspaceEditPreview'
-
-export interface DiagnosticInfo extends sourcegraph.Diagnostic {
-    entry: Pick<GQL.ITreeEntry, 'path' | 'isDirectory' | 'url'> & {
-        commit: Pick<GQL.IGitCommit, 'oid'>
-        repository: Pick<GQL.IRepository, 'name'>
-    } & (Pick<GQL.IGitBlob, '__typename' | 'content'> | Pick<GQL.IGitTree, '__typename'>)
-}
+import { DiagnosticInfo } from '../../backend'
 
 const LOADING: 'loading' = 'loading'
 

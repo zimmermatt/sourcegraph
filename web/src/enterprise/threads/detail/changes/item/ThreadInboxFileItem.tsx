@@ -14,15 +14,9 @@ import { asError, ErrorLike, isErrorLike } from '../../../../../../../shared/src
 import { makeRepoURI } from '../../../../../../../shared/src/util/url'
 import { DiagnosticSeverityIcon } from '../../../../../diagnostics/components/DiagnosticSeverityIcon'
 import { ThreadSettings } from '../../../settings'
+import { DiagnosticInfo } from '../../backend'
 import { ThreadInboxItemActions } from './actions/ThreadInboxItemActions'
 import { WorkspaceEditPreview } from './WorkspaceEditPreview'
-
-export interface DiagnosticInfo extends sourcegraph.Diagnostic {
-    entry: Pick<GQL.ITreeEntry, 'path' | 'isDirectory' | 'url'> & {
-        commit: Pick<GQL.IGitCommit, 'oid'>
-        repository: Pick<GQL.IRepository, 'name'>
-    } & (Pick<GQL.IGitBlob, '__typename' | 'content'> | Pick<GQL.IGitTree, '__typename'>)
-}
 
 const LOADING: 'loading' = 'loading'
 
