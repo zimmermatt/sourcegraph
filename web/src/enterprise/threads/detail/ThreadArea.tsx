@@ -11,6 +11,7 @@ import { parseJSON } from '../../../settings/configuration'
 import { ThreadsAreaContext } from '../global/ThreadsArea'
 import { ThreadSettings } from '../settings'
 import { ThreadActionsArea } from './actions/ThreadActionsArea'
+import { ThreadChangesPage } from './changes/ThreadChangesPage'
 import { ThreadDiscussionPage } from './discussion/ThreadDiscussionPage'
 import { ThreadInboxPage } from './inbox/ThreadInboxPage'
 import { ThreadOverview } from './overview/ThreadOverview'
@@ -77,6 +78,7 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
     const isCheck = threadOrError && !isErrorLike(threadOrError) && threadOrError.type === GQL.ThreadType.CHECK
     const sections = {
         review: true,
+        changes: isCheck,
         actions: isCheck,
         settings: isCheck,
     }
@@ -119,6 +121,16 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
                                 // tslint:disable-next-line:jsx-no-lambda
                                 render={routeComponentProps => (
                                     <ThreadInboxPage {...context} {...routeComponentProps} />
+                                )}
+                            />
+                        )}
+                        {sections.changes && (
+                            <Route
+                                path={`${props.match.url}/changes`}
+                                key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
+                                // tslint:disable-next-line:jsx-no-lambda
+                                render={routeComponentProps => (
+                                    <ThreadChangesPage {...context} {...routeComponentProps} />
                                 )}
                             />
                         )}

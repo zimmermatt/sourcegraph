@@ -4,7 +4,7 @@ import { TreeFilterSidebar } from '../../../components/treeFilterSidebar/TreeFil
 import { QueryParameterProps } from '../../../components/withQueryParameter/WithQueryParameter'
 import { DiagnosticInfo } from '../item/ThreadInboxFileItem'
 import { ThreadInboxSidebarFilterListDiagnosticItem } from './ThreadInboxSidebarFilterListDiagnosticItem'
-import { ThreadInboxSidebarFilterListPathItem } from './ThreadInboxSidebarFilterListPathItem'
+import { ThreadInboxSidebarFilterListPathItem } from './ThreadChangesSidebarFilterListPathItem'
 
 interface Props extends QueryParameterProps {
     diagnostics: DiagnosticInfo[]

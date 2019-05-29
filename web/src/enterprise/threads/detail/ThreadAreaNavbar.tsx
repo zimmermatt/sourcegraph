@@ -1,3 +1,4 @@
+import FileDocumentBoxMultipleIcon from 'mdi-react/FileDocumentBoxMultipleIcon'
 import InboxIcon from 'mdi-react/InboxIcon'
 import PlayCircleIcon from 'mdi-react/PlayCircleIcon'
 import SettingsIcon from 'mdi-react/SettingsIcon'
@@ -10,7 +11,7 @@ import { ThreadSettings } from '../settings'
 interface Props {
     thread: GQL.IDiscussionThread
     threadSettings: ThreadSettings
-    sections: { review: boolean; actions: boolean; settings: boolean }
+    sections: { review: boolean; changes: boolean; actions: boolean; settings: boolean }
     areaURL: string
     className?: string
 }
@@ -61,6 +62,17 @@ export const ThreadAreaNavbar: React.FunctionComponent<Props> = ({
                                         .filter(v => !isHandled(v, threadSettings)).length
                                 }
                             </span>
+                        </NavLink>
+                    </div>
+                )}
+                {sections.changes && (
+                    <div className="nav-item">
+                        <NavLink
+                            to={`${areaURL}/changes`}
+                            className="thread-area-navbar__nav-link nav-link rounded-0"
+                            activeClassName="thread-area-navbar__nav-link--active"
+                        >
+                            <FileDocumentBoxMultipleIcon className="icon-inline" /> Changes
                         </NavLink>
                     </div>
                 )}
