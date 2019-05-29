@@ -150,7 +150,7 @@ export const ThreadInboxFileItem: React.FunctionComponent<Props> = ({
                                 {...props}
                                 workspaceEdit={activeCodeAction.edit}
                                 extensionsController={extensionsController}
-                                className="overflow-auto"
+                                className="border-top overflow-auto"
                             />
                         ) : (
                             'no edit'

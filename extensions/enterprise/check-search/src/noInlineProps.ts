@@ -6,7 +6,7 @@ import { Subscription, Observable, of, Unsubscribable, from } from 'rxjs'
 import { map, switchMap, startWith, first, toArray } from 'rxjs/operators'
 import { queryGraphQL } from './util'
 import * as GQL from '../../../../shared/src/graphql/schema'
-import { OTHER_CODE_ACTIONS } from './misc'
+import { OTHER_CODE_ACTIONS, MAX_RESULTS, REPO_INCLUDE } from './misc'
 
 export function registerNoInlineProps(): Unsubscribable {
     const subscriptions = new Subscription()
@@ -36,14 +36,14 @@ function startDiagnostics(): Unsubscribable {
                                 { pattern: 'React\\.FunctionComponent<\\{', type: 'regexp' },
                                 {
                                     repositories: {
-                                        includes: ['(sourcegraph2|codeintellify|about|react-loading-spinner)$'],
+                                        includes: [REPO_INCLUDE],
                                         type: 'regexp',
                                     },
                                     files: {
                                         // includes: ['^web/src/.*\\.tsx?$'],
                                         type: 'regexp',
                                     },
-                                    maxResults: 10,
+                                    maxResults: MAX_RESULTS,
                                 }
                             )
                         )
@@ -66,7 +66,7 @@ function startDiagnostics(): Unsubscribable {
                             )
                             return [new URL(uri), diagnostics] as [URL, sourcegraph.Diagnostic[]]
                         })
-                    ).pipe(map(items => items.filter(isDefined))) // .pipe(switchMap(results => flatten<[URL, sourcegraph.Diagnostic[]]>(results)))
+                    ).pipe(map(items => items.filter(isDefined)))
                 }),
                 switchMap(results => results)
             )

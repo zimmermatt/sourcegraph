@@ -18,3 +18,7 @@ export const OTHER_CODE_ACTIONS: sourcegraph.CodeAction[] = [
         command: { title: '', command: 'TODO!(sqs)' },
     },
 ]
+
+export const REPO_INCLUDE = '(sourcegraph2|codeintellify|about|react-loading-spinner)$'
+
+export const MAX_RESULTS = 3

@@ -10,13 +10,27 @@
     }
 
     // TODO!(sqs): hacky
-    .markdown pre {
-        padding: 0.25rem;
+    .markdown {
+        pre {
+            padding: 0 0.25rem;
+        }
+        pre,
+        code {
+            background-color: black !important;
+        }
     }
 }
 
 .theme-light .thread-area {
     &__sidebar {
         background-color: $color-light-bg-2;
+    }
+
+    // TODO!(sqs): hacky
+    .markdown {
+        pre,
+        code {
+            background-color: white !important;
+        }
     }
 }
