@@ -1,6 +1,8 @@
 import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import H from 'history'
-import React, { useState } from 'react'
+import UnfoldLessVerticalIcon from 'mdi-react/UnfoldLessVerticalIcon'
+import UnfoldMoreVerticalIcon from 'mdi-react/UnfoldMoreVerticalIcon'
+import React, { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { RepoLink } from '../../../../../shared/src/components/RepoLink'
 import { ExtensionsControllerProps } from '../../../../../shared/src/extensions/controller'
@@ -27,35 +29,60 @@ const REPOS = [
 
 const LOADING: 'loading' = 'loading'
 
+const LOCAL_STORAGE_KEY = 'ChecksDashboardPage-container'
+
 /**
  * A dashboard for checks.
  */
 export const ChecksDashboardPage: React.FunctionComponent<Props> = ({ location, ...props }) => {
-    const [checksOrError, setChecksOrError] = useState<typeof LOADING | GQL.IDiscussionThreadConnection | ErrorLike>(
+    const initialIsExpanded = useMemo(() => localStorage.getItem(LOCAL_STORAGE_KEY) !== null, [LOCAL_STORAGE_KEY])
+    const [isExpanded, setIsExpanded] = useState(initialIsExpanded)
+    const toggleIsExpanded = useCallback(() => {
+        setIsExpanded(!isExpanded)
+        if (isExpanded) {
+            localStorage.removeItem(LOCAL_STORAGE_KEY)
+        } else {
+            localStorage.setItem(LOCAL_STORAGE_KEY, 'expanded')
+        }
+    }, [isExpanded, LOCAL_STORAGE_KEY])
+
+    const [threadsOrError, setThreadsOrError] = useState<typeof LOADING | GQL.IDiscussionThreadConnection | ErrorLike>(
         LOADING
     )
     useEffectAsync(async () => {
         try {
-            const checks = await fetchDiscussionThreads({}).toPromise()
-            setChecksOrError(checks)
+            setThreadsOrError(await fetchDiscussionThreads({}).toPromise())
         } catch (err) {
-            setChecksOrError(asError(err))
+            setThreadsOrError(asError(err))
         }
     }, [])
 
     return (
-        <div className="container-fluid mt-3">
-            <ChecksAreaTitle />
-            {checksOrError === LOADING ? (
+        <div className={`${isExpanded ? 'container-fluid' : 'container'} mt-3`}>
+            <ChecksAreaTitle>
+                <button
+                    type="button"
+                    className="btn btn-link text-decoration-none"
+                    data-tooltip={isExpanded ? 'Exit widescreen view' : 'Enter widescreen view'}
+                    onClick={toggleIsExpanded}
+                >
+                    {isExpanded ? (
+                        <UnfoldLessVerticalIcon className="icon-inline" />
+                    ) : (
+                        <UnfoldMoreVerticalIcon className="icon-inline" />
+                    )}
+                </button>
+            </ChecksAreaTitle>
+            {threadsOrError === LOADING ? (
                 <LoadingSpinner className="mt-3 mx-auto" />
-            ) : isErrorLike(checksOrError) ? (
-                <div className="alert alert-danger">{checksOrError.message}</div>
+            ) : isErrorLike(threadsOrError) ? (
+                <div className="alert alert-danger">{threadsOrError.message}</div>
             ) : (
                 <table className="table table-bordered border-0 table-responsive-md">
                     <thead>
                         <tr>
                             <th className="border-top-0 border-left-0" />
-                            {checksOrError.nodes.map((check, i) => (
+                            {threadsOrError.nodes.map((check, i) => (
                                 <th key={i}>
                                     <Link to={check.url}>
                                         {check.title}{' '}
@@ -71,8 +98,8 @@ export const ChecksDashboardPage: React.FunctionComponent<Props> = ({ location, 
                                 <th className="text-nowrap" style={{ width: '1%' }}>
                                     <RepoLink repoName={repo} to={`/${repo}`} />
                                 </th>
-                                {checksOrError.nodes.map((check, i) => (
-                                    <CheckDashboardCell {...props} key={i} check={check} />
+                                {threadsOrError.nodes.map((thread, i) => (
+                                    <CheckDashboardCell {...props} key={i} thread={thread} repo={repo} />
                                 ))}
                             </tr>
                         ))}

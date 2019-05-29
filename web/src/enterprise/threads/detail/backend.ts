@@ -157,9 +157,11 @@ const interpolatePullRequestTemplate = ({ title, branch, description }: PullRequ
 
 export const computeChangesets = (
     extensionsController: ExtensionsControllerProps['extensionsController'],
-    threadSettings: ThreadSettings
+    threadSettings: ThreadSettings,
+    query?: { repo: string }
 ): Observable<Changeset[]> =>
     getDiagnosticInfos(extensionsController).pipe(
+        map(diagnostics => (query ? diagnostics.filter(d => d.entry.repository.name === query.repo) : diagnostics)),
         switchMap(diagnostics =>
             combineLatest(diagnostics.map(d => getActiveCodeAction(d, extensionsController, threadSettings)))
         ),
@@ -193,10 +195,10 @@ export type ChangesetExternalStatus = 'open' | 'merged' | 'closed'
 
 const CHANGESET_EXTERNAL_STATUSES: ChangesetExternalStatus[] = ['open', 'merged', 'closed']
 
-export const getChangesetExternalStatus = (
-    changeset: Changeset
-): { title: string; status: ChangesetExternalStatus; commentsCount: number } => {
-    const k = changeset.repo.split('').reduce((sum, c) => (sum += c.charCodeAt(0)), 0)
+export const getChangesetExternalStatus = ({
+    repo,
+}: Pick<Changeset, 'repo'>): { title: string; status: ChangesetExternalStatus; commentsCount: number } => {
+    const k = repo.split('').reduce((sum, c) => (sum += c.charCodeAt(0)), 0)
     const status = CHANGESET_EXTERNAL_STATUSES[k % CHANGESET_EXTERNAL_STATUSES.length]
     return {
         title: `#${k % 300}`,
