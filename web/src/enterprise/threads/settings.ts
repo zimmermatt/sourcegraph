@@ -25,8 +25,9 @@ export interface PullRequestFields {
 }
 
 export interface CommitStatusRule {
-    branch: string
-    infoOnly: boolean
+    branch?: string
+    infoOnly?: boolean
+    enabled?: boolean
 }
 
 export interface ThreadSettings {

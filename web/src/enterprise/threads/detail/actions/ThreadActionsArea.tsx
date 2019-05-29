@@ -8,6 +8,7 @@ import { ErrorBoundary } from '../../../../components/ErrorBoundary'
 import { HeroPage } from '../../../../components/HeroPage'
 import { ThreadSettings } from '../../settings'
 import { ThreadAreaContext } from '../ThreadArea'
+import { ThreadActionsCommitStatusesPage } from './commitStatuses/ThreadActionsCommitStatusesPage'
 import { ThreadActionsPullRequestsPage } from './pullRequests/ThreadActionsPullRequestsPage'
 import { ThreadActionsAreaSidebar } from './ThreadActionsAreaSidebar'
 import { ThreadActionsOverview } from './ThreadActionsOverview'
@@ -64,6 +65,15 @@ export const ThreadActionsArea: React.FunctionComponent<Props> = ({
                             // tslint:disable-next-line:jsx-no-lambda
                             render={routeComponentProps => (
                                 <ThreadActionsPullRequestsPage {...routeComponentProps} {...context} />
+                            )}
+                        />
+                        <Route
+                            path={`${props.match.url}/commit-statuses`}
+                            key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
+                            exact={true}
+                            // tslint:disable-next-line:jsx-no-lambda
+                            render={routeComponentProps => (
+                                <ThreadActionsCommitStatusesPage {...routeComponentProps} {...context} />
                             )}
                         />
                         <Route key="hardcoded-key" component={NotFoundPage} />

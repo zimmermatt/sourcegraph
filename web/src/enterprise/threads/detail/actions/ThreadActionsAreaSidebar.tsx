@@ -35,7 +35,7 @@ export const ThreadActionsAreaSidebar: React.FunctionComponent<Props> = ({ areaU
                     <SourcePullIcon className="icon-inline" /> Pull requests
                 </NavLink>
                 <NavLink
-                    to={`${areaURL}/commit-status`}
+                    to={`${areaURL}/commit-statuses`}
                     className="list-group-item list-group-item-action p-2"
                     activeClassName="active"
                 >

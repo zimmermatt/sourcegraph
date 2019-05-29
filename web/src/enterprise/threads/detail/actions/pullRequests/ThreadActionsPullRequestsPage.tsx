@@ -1,4 +1,5 @@
 import H from 'history'
+import PencilIcon from 'mdi-react/PencilIcon'
 import React, { useCallback, useState } from 'react'
 import { ExtensionsControllerProps } from '../../../../../../../shared/src/extensions/controller'
 import { WithQueryParameter } from '../../../components/withQueryParameter/WithQueryParameter'
@@ -7,7 +8,6 @@ import { threadsQueryWithValues } from '../../../url'
 import { ThreadAreaContext } from '../../ThreadArea'
 import { ThreadActionsPullRequestsList } from './ThreadActionsPullRequestsList'
 import { ThreadPullRequestTemplateEditForm } from './ThreadPullRequestTemplateEditForm'
-import PencilIcon from 'mdi-react/PencilIcon'
 
 interface Props extends ThreadAreaContext, ExtensionsControllerProps {
     history: H.History
@@ -30,24 +30,27 @@ export const ThreadActionsPullRequestsPage: React.FunctionComponent<Props> = ({
         <div className="thread-actions-pull-requests-page">
             <div className="mb-3">
                 {isShowingTemplate ? (
-                    <div className="border rounded p-3">
-                        <h2>Pull request template</h2>
-                        <ThreadPullRequestTemplateEditForm
-                            thread={thread}
-                            onThreadUpdate={onThreadUpdate}
-                            threadSettings={threadSettings}
-                            extraAction={
-                                threadSettings.pullRequestTemplate ? (
-                                    <button
-                                        type="button"
-                                        className="btn btn-secondary"
-                                        onClick={toggleIsShowingTemplate}
-                                    >
-                                        Cancel
-                                    </button>
-                                ) : null
-                            }
-                        />
+                    <div className="card">
+                        <h3 className="card-header">Pull request template</h3>
+                        <div className="card-body">
+                            <ThreadPullRequestTemplateEditForm
+                                {...props}
+                                thread={thread}
+                                onThreadUpdate={onThreadUpdate}
+                                threadSettings={threadSettings}
+                                extraAction={
+                                    threadSettings.pullRequestTemplate ? (
+                                        <button
+                                            type="button"
+                                            className="btn btn-secondary"
+                                            onClick={toggleIsShowingTemplate}
+                                        >
+                                            Cancel
+                                        </button>
+                                    ) : null
+                                }
+                            />
+                        </div>
                     </div>
                 ) : (
                     <button

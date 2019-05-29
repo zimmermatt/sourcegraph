@@ -1,13 +1,8 @@
 import H from 'history'
-import PencilIcon from 'mdi-react/PencilIcon'
-import React, { useCallback, useState } from 'react'
+import React from 'react'
 import { ExtensionsControllerProps } from '../../../../../../../shared/src/extensions/controller'
-import { WithQueryParameter } from '../../../components/withQueryParameter/WithQueryParameter'
-import { ThreadCreatePullRequestsButton } from '../../../form/ThreadCreatePullRequestsButton'
-import { threadsQueryWithValues } from '../../../url'
 import { ThreadAreaContext } from '../../ThreadArea'
-import { ThreadActionsPullRequestsList } from './ThreadActionsPullRequestsList'
-import { ThreadPullRequestTemplateEditForm } from './ThreadPullRequestTemplateEditForm'
+import { ThreadActionsCommitStatusRuleForm } from './ThreadActionsCommitStatusRuleForm'
 
 interface Props extends ThreadAreaContext, ExtensionsControllerProps {
     history: H.History
@@ -24,58 +19,20 @@ export const ThreadActionsCommitStatusesPage: React.FunctionComponent<Props> = (
     ...props
 }) => (
     <div>
-        <div className="mb-3">
-            {isShowingTemplate ? (
-                <div className="border rounded p-3">
-                    <h2>Pull request template</h2>
-                    <ThreadPullRequestTemplateEditForm
-                        thread={thread}
-                        onThreadUpdate={onThreadUpdate}
-                        threadSettings={threadSettings}
-                        extraAction={
-                            threadSettings.pullRequestTemplate ? (
-                                <button type="button" className="btn btn-secondary" onClick={toggleIsShowingTemplate}>
-                                    Cancel
-                                </button>
-                            ) : null
-                        }
-                    />
-                </div>
-            ) : (
-                <button
-                    type="button"
-                    className="btn btn-secondary d-flex align-items-center"
-                    onClick={toggleIsShowingTemplate}
-                >
-                    <PencilIcon className="icon-inline mr-1" /> Edit pull request template
-                </button>
-            )}
-        </div>
-        <WithQueryParameter
-            defaultQuery={threadsQueryWithValues('', { is: ['open', 'pending'] })}
-            history={props.history}
-            location={props.location}
-        >
-            {({ query, onQueryChange }) => (
-                <ThreadActionsPullRequestsList
+        <div className="card mb-3">
+            <h3 className="card-header">Commit status rule</h3>
+            <div className="card-body">
+                <ThreadActionsCommitStatusRuleForm
                     {...props}
                     thread={thread}
                     onThreadUpdate={onThreadUpdate}
                     threadSettings={threadSettings}
-                    query={query}
-                    onQueryChange={onQueryChange}
-                    action={
-                        threadSettings.pullRequestTemplate && (
-                            <ThreadCreatePullRequestsButton
-                                {...props}
-                                thread={thread}
-                                onThreadUpdate={onThreadUpdate}
-                                threadSettings={threadSettings}
-                            />
-                        )
-                    }
                 />
-            )}
-        </WithQueryParameter>
+            </div>
+        </div>
+        <div className="card">
+            <h3 className="card-header">Log</h3>
+            <div className="card-body">No commit statuses found.</div>
+        </div>
     </div>
 )
