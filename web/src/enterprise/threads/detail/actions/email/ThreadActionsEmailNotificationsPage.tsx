@@ -2,7 +2,7 @@ import H from 'history'
 import React from 'react'
 import { ExtensionsControllerProps } from '../../../../../../../shared/src/extensions/controller'
 import { ThreadAreaContext } from '../../ThreadArea'
-import { ThreadActionsCommitStatusRuleForm } from './ThreadActionsCommitStatusRuleForm'
+import { ThreadActionsEmailNotificationRuleForm } from './ThreadActionsEmailNotificationRuleForm'
 
 interface Props extends ThreadAreaContext, ExtensionsControllerProps {
     history: H.History
@@ -10,9 +10,9 @@ interface Props extends ThreadAreaContext, ExtensionsControllerProps {
 }
 
 /**
- * The page showing commit status actions for a thread.
+ * The page showing email notification actions for a thread.
  */
-export const ThreadActionsCommitStatusesPage: React.FunctionComponent<Props> = ({
+export const ThreadActionsEmailNotificationsPage: React.FunctionComponent<Props> = ({
     thread,
     onThreadUpdate,
     threadSettings,
@@ -20,9 +20,9 @@ export const ThreadActionsCommitStatusesPage: React.FunctionComponent<Props> = (
 }) => (
     <div>
         <div className="card mb-3">
-            <h3 className="card-header">Commit status rules</h3>
+            <h3 className="card-header">Email notification rules</h3>
             <div className="card-body">
-                <ThreadActionsCommitStatusRuleForm
+                <ThreadActionsEmailNotificationRuleForm
                     {...props}
                     thread={thread}
                     onThreadUpdate={onThreadUpdate}
@@ -32,7 +32,7 @@ export const ThreadActionsCommitStatusesPage: React.FunctionComponent<Props> = (
         </div>
         <div className="card">
             <h3 className="card-header">Log</h3>
-            <div className="card-body">No commit statuses found.</div>
+            <div className="card-body">No email messages sent yet.</div>
         </div>
     </div>
 )

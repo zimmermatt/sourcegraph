@@ -9,9 +9,12 @@ import { HeroPage } from '../../../../components/HeroPage'
 import { ThreadSettings } from '../../settings'
 import { ThreadAreaContext } from '../ThreadArea'
 import { ThreadActionsCommitStatusesPage } from './commitStatuses/ThreadActionsCommitStatusesPage'
+import { ThreadActionsEmailNotificationsPage } from './email/ThreadActionsEmailNotificationsPage'
 import { ThreadActionsPullRequestsPage } from './pullRequests/ThreadActionsPullRequestsPage'
+import { ThreadActionsSlackNotificationsPage } from './slackNotifications/ThreadActionsSlackNotificationsPage'
 import { ThreadActionsAreaSidebar } from './ThreadActionsAreaSidebar'
 import { ThreadActionsOverview } from './ThreadActionsOverview'
+import { ThreadActionsWebhooksPage } from './webhooks/ThreadActionsWebhooksPage'
 
 const NotFoundPage = () => (
     <HeroPage icon={MapSearchIcon} title="404: Not Found" subtitle="Sorry, the requested page was not found." />
@@ -74,6 +77,33 @@ export const ThreadActionsArea: React.FunctionComponent<Props> = ({
                             // tslint:disable-next-line:jsx-no-lambda
                             render={routeComponentProps => (
                                 <ThreadActionsCommitStatusesPage {...routeComponentProps} {...context} />
+                            )}
+                        />
+                        <Route
+                            path={`${props.match.url}/slack`}
+                            key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
+                            exact={true}
+                            // tslint:disable-next-line:jsx-no-lambda
+                            render={routeComponentProps => (
+                                <ThreadActionsSlackNotificationsPage {...routeComponentProps} {...context} />
+                            )}
+                        />
+                        <Route
+                            path={`${props.match.url}/email`}
+                            key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
+                            exact={true}
+                            // tslint:disable-next-line:jsx-no-lambda
+                            render={routeComponentProps => (
+                                <ThreadActionsEmailNotificationsPage {...routeComponentProps} {...context} />
+                            )}
+                        />
+                        <Route
+                            path={`${props.match.url}/webhooks`}
+                            key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
+                            exact={true}
+                            // tslint:disable-next-line:jsx-no-lambda
+                            render={routeComponentProps => (
+                                <ThreadActionsWebhooksPage {...routeComponentProps} {...context} />
                             )}
                         />
                         <Route key="hardcoded-key" component={NotFoundPage} />
