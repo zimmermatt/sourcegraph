@@ -26,14 +26,21 @@ export class DiagnosticCollection<D extends Diagnostic> {
 
     constructor(public readonly name: string) {}
 
-    public set(uri: URL | string, diagnostics: D[] | undefined, merge?: boolean): void
+    public set(uri: URL | string, diagnostics: D[] | undefined, merge?: boolean, emitChanged?: boolean): void
     public set(entries: [URL | string, D[] | undefined][]): void
-    public set(arg1: URL | string | [URL | string, D[] | undefined][], arg2?: D[] | undefined, merge = false): void {
+    public set(
+        arg1: URL | string | [URL | string, D[] | undefined][],
+        arg2?: D[] | undefined,
+        merge = false,
+        emitChanged = true
+    ): void {
         if (Array.isArray(arg1)) {
-            this.clear()
+            const beforeUris = Array.from(this.data.keys())
+            this.clear(false)
             for (const [uri, diagnostics] of arg1) {
-                this.set(uri.toString(), diagnostics, true)
+                this.set(uri.toString(), diagnostics, true, false)
             }
+            this.changed([...beforeUris, ...arg1.map(([uri]) => uri.toString())])
         } else {
             const key = arg1.toString()
             if (arg2) {
@@ -41,7 +48,9 @@ export class DiagnosticCollection<D extends Diagnostic> {
             } else {
                 this.data.delete(key)
             }
-            this.changed(arg1)
+            if (emitChanged) {
+                this.changed(arg1)
+            }
         }
     }
 
@@ -50,10 +59,12 @@ export class DiagnosticCollection<D extends Diagnostic> {
         this.changed(uri)
     }
 
-    public clear(): void {
+    public clear(emitChanged = true): void {
         const uris = [...this.data.keys()]
         this.data.clear()
-        this.changed(uris)
+        if (emitChanged) {
+            this.changed(uris)
+        }
     }
 
     private changed(uris: URL | string | (URL | string)[]): void {
