@@ -77,7 +77,7 @@ export const ThreadInboxFileItem: React.FunctionComponent<Props> = ({
                 })
             )
         },
-        [diagnostic]
+        [diagnostic, threadSettings]
     )
 
     const activeCodeAction =

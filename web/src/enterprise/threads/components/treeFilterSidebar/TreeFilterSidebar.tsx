@@ -33,8 +33,8 @@ export const TreeFilterSidebar: React.FunctionComponent<Props> = ({
 
     const ITEM_CLASS_NAME = 'list-group-item list-group-item-action small'
     return (
-        <aside className={`overflow-hidden ${className}`}>
-            <Form className="form p-2" onSubmit={onSubmit}>
+        <aside className={`overflow-hidden d-flex flex-column ${className}`}>
+            <Form className="form p-2 flex-0" onSubmit={onSubmit}>
                 <input
                     type="search"
                     className="form-control form-control-sm"
@@ -43,7 +43,7 @@ export const TreeFilterSidebar: React.FunctionComponent<Props> = ({
                     onChange={onChange}
                 />
             </Form>
-            <div className="list-group list-group-flush border-bottom">
+            <div className="list-group list-group-flush border-bottom" style={{ overflowY: 'auto' }}>
                 {children({ query, className: ITEM_CLASS_NAME })}
             </div>
         </aside>

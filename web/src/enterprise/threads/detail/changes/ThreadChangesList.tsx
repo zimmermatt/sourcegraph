@@ -81,49 +81,27 @@ export const ThreadChangesList: React.FunctionComponent<Props> = ({
                             )}
                                 </WithStickyTop>*/ ''}
                     {changesetsOrError === LOADING ? (
-                        <LoadingSpinner className="mt-2" />
+                        <LoadingSpinner className="m-2" />
                     ) : changesetsOrError.length === 0 ? (
                         <p className="p-2 mb-0 text-muted">Inbox is empty.</p>
                     ) : (
-                        <div className="d-flex">
-                            <Resizable
-                                className="sticky-top border-right"
-                                handlePosition="right"
-                                storageKey="thread-inbox-items-list__sidebar-resizable"
-                                defaultSize={216 /* px */}
-                                element={
-                                    <ThreadInboxSidebar
-                                        diagnostics={changesetsOrError}
-                                        query={query}
-                                        onQueryChange={onQueryChange}
-                                        className="flex-1"
+                        <ul className="list-unstyled mb-0 flex-1" style={{ minWidth: '0' }}>
+                            {changesetsOrError.map((changeset, i) => (
+                                <li key={i}>
+                                    <ThreadChangesetItem
+                                        key={i}
+                                        className="m-2"
+                                        threadSettings={threadSettings}
+                                        changeset={changeset}
+                                        headerClassName="thread-changes-list__item-header sticky-top"
+                                        headerStyle={{
+                                            // TODO!(sqs): this is the hardcoded height of ThreadAreaNavbar
+                                            top: '39px',
+                                        }}
                                     />
-                                }
-                                style={{
-                                    minWidth: '8rem',
-                                    maxWidth: '75vh',
-                                    height: 'calc(100vh - 83.5px)', // 83.5px = 39px + 44.5px(GlobalNavbar)
-                                    top: '39px', // TODO!(sqs): this is the hardcoded height of ThreadAreaNavbar
-                                }}
-                            />
-                            <ul className="list-unstyled mb-0 flex-1" style={{ minWidth: '0' }}>
-                                {changesetsOrError.map((changeset, i) => (
-                                    <li key={i}>
-                                        <ThreadChangesetItem
-                                            key={i}
-                                            className="m-2"
-                                            threadSettings={threadSettings}
-                                            changeset={changeset}
-                                            headerClassName="thread-changes-list__item-header sticky-top"
-                                            headerStyle={{
-                                                // TODO!(sqs): this is the hardcoded height of ThreadAreaNavbar
-                                                top: '39px',
-                                            }}
-                                        />
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
+                                </li>
+                            ))}
+                        </ul>
                     )}
                 </>
             )}

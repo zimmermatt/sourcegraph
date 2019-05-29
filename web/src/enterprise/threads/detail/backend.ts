@@ -143,6 +143,18 @@ export interface Changeset {
     fileDiffs: FileDiff[]
 }
 
+const interpolatePullRequestTemplate = ({ title, branch, description }: PullRequestFields): PullRequestFields => ({
+    title,
+    branch,
+    description: description
+        .replace('${check_number}', '49')
+        .replace('${check_url}', 'https://sourcegraph.example.com/checks/49')
+        .replace(
+            '${related_links}',
+            '- [sourcegraph/codeintellify#41](#)\n- [sourcegraph/sourcegraph#9184](#)\n- [sourcegraph/react-loading-spinner#35](#)'
+        ),
+})
+
 export const computeChangesets = (
     extensionsController: ExtensionsControllerProps['extensionsController'],
     threadSettings: ThreadSettings
@@ -164,15 +176,31 @@ export const computeChangesets = (
             for (const [repo, fileDiffs] of byRepo) {
                 changesets.push({
                     repo,
-                    pullRequest: {
+                    pullRequest: interpolatePullRequestTemplate({
                         title: 'Untitled',
                         branch: 'codemod-84571', // TODO!(sqs)
                         description: 'No description set',
                         ...threadSettings.pullRequestTemplate,
-                    },
+                    }),
                     fileDiffs,
                 })
             }
             return sortBy(changesets, c => c.repo)
         })
     )
+
+export type ChangesetExternalStatus = 'open' | 'merged' | 'closed'
+
+const CHANGESET_EXTERNAL_STATUSES: ChangesetExternalStatus[] = ['open', 'merged', 'closed']
+
+export const getChangesetExternalStatus = (
+    changeset: Changeset
+): { title: string; status: ChangesetExternalStatus; commentCount: number } => {
+    const k = changeset.repo.split('').reduce((sum, c) => (sum += c.charCodeAt(0)), 0)
+    const status = CHANGESET_EXTERNAL_STATUSES[k % CHANGESET_EXTERNAL_STATUSES.length]
+    return {
+        title: `#${k % 300}`,
+        status: status === 'closed' && k % 15 === 0 ? 'closed' : 'merged',
+        commentCount: k % 17,
+    }
+}

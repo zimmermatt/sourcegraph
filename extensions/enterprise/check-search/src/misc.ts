@@ -21,4 +21,4 @@ export const OTHER_CODE_ACTIONS: sourcegraph.CodeAction[] = [
 
 export const REPO_INCLUDE = '(sourcegraph2|codeintellify|about|react-loading-spinner)$'
 
-export const MAX_RESULTS = 3
+export const MAX_RESULTS = 15
