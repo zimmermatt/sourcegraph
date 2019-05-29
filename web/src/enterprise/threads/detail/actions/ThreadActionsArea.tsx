@@ -15,6 +15,7 @@ import { ThreadActionsSlackNotificationsPage } from './slackNotifications/Thread
 import { ThreadActionsAreaSidebar } from './ThreadActionsAreaSidebar'
 import { ThreadActionsOverview } from './ThreadActionsOverview'
 import { ThreadActionsWebhooksPage } from './webhooks/ThreadActionsWebhooksPage'
+import { ThreadActionsEditorPage } from './editor/ThreadActionsEditorPage'
 
 const NotFoundPage = () => (
     <HeroPage icon={MapSearchIcon} title="404: Not Found" subtitle="Sorry, the requested page was not found." />
@@ -95,6 +96,15 @@ export const ThreadActionsArea: React.FunctionComponent<Props> = ({
                             // tslint:disable-next-line:jsx-no-lambda
                             render={routeComponentProps => (
                                 <ThreadActionsEmailNotificationsPage {...routeComponentProps} {...context} />
+                            )}
+                        />
+                        <Route
+                            path={`${props.match.url}/editor`}
+                            key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
+                            exact={true}
+                            // tslint:disable-next-line:jsx-no-lambda
+                            render={routeComponentProps => (
+                                <ThreadActionsEditorPage {...routeComponentProps} {...context} />
                             )}
                         />
                         <Route
