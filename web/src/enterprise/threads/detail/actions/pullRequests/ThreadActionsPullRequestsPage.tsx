@@ -63,7 +63,7 @@ export const ThreadActionsPullRequestsPage: React.FunctionComponent<Props> = ({
                 )}
             </div>
             <WithQueryParameter
-                defaultQuery={threadsQueryWithValues('', { is: ['open', 'pending'] })}
+                defaultQuery={threadsQueryWithValues('', { is: ['open', 'merged', 'pending'] })}
                 history={props.history}
                 location={props.location}
             >

@@ -41,6 +41,7 @@ function startDiagnostics(): Unsubscribable {
                                     },
                                     files: {
                                         // includes: ['^(web/src/org|browser/src/libs/phabricator)/.*\\.tsx?$'],
+                                        excludes: ['page'],
                                         type: 'regexp',
                                     },
                                     maxResults: MAX_RESULTS,

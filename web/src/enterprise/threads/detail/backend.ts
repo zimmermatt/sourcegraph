@@ -195,12 +195,12 @@ const CHANGESET_EXTERNAL_STATUSES: ChangesetExternalStatus[] = ['open', 'merged'
 
 export const getChangesetExternalStatus = (
     changeset: Changeset
-): { title: string; status: ChangesetExternalStatus; commentCount: number } => {
+): { title: string; status: ChangesetExternalStatus; commentsCount: number } => {
     const k = changeset.repo.split('').reduce((sum, c) => (sum += c.charCodeAt(0)), 0)
     const status = CHANGESET_EXTERNAL_STATUSES[k % CHANGESET_EXTERNAL_STATUSES.length]
     return {
         title: `#${k % 300}`,
-        status: status === 'closed' && k % 15 === 0 ? 'closed' : 'merged',
-        commentCount: k % 17,
+        status: status === 'closed' && k % 20 === 0 ? 'closed' : k % 2 === 0 ? 'merged' : 'open',
+        commentsCount: k % 17,
     }
 }

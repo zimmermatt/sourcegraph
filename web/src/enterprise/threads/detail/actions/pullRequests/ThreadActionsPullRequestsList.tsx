@@ -4,38 +4,19 @@ import CheckCircleIcon from 'mdi-react/CheckCircleIcon'
 import CloseCircleIcon from 'mdi-react/CloseCircleIcon'
 import DotsHorizontalCircleIcon from 'mdi-react/DotsHorizontalCircleIcon'
 import SourcePullIcon from 'mdi-react/SourcePullIcon'
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Subscription } from 'rxjs'
+import { catchError, startWith } from 'rxjs/operators'
 import { ExtensionsControllerProps } from '../../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../../shared/src/graphql/schema'
 import { asError, ErrorLike, isErrorLike } from '../../../../../../../shared/src/util/errors'
 import { ListHeaderQueryLinksNav } from '../../../components/ListHeaderQueryLinks'
 import { QueryParameterProps } from '../../../components/withQueryParameter/WithQueryParameter'
 import { PullRequest, ThreadSettings } from '../../../settings'
+import { Changeset, computeChangesets, getChangesetExternalStatus } from '../../backend'
 import { ThreadStatusItemsProgressBar } from '../ThreadStatusItemsProgressBar'
 import { ThreadActionsPullRequestListHeaderFilterButtonDropdown } from './ThreadActionsPullRequestListHeaderFilterButtonDropdown'
 import { ThreadActionsPullRequestsListItem } from './ThreadActionsPullRequestsListItem'
-
-interface PullRequestConnection {
-    nodes: PullRequest[]
-    matchingNodes: PullRequest[]
-    totalCount: number
-}
-
-const queryPullRequests = async (threadSettings: ThreadSettings, query: string): Promise<PullRequestConnection> => {
-    const pulls = threadSettings.pullRequests || []
-    return {
-        nodes: pulls,
-        matchingNodes: pulls.filter(
-            node =>
-                (query.includes('is:pending') && node.status === 'pending') ||
-                (query.includes('is:open') && node.status === 'open') ||
-                (query.includes('is:merged') && node.status === 'merged') ||
-                (query.includes('is:closed') && node.status === 'closed') ||
-                !query.includes('is:')
-        ),
-        totalCount: pulls.length,
-    }
-}
 
 interface Props extends QueryParameterProps, ExtensionsControllerProps {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'url'>
@@ -62,21 +43,53 @@ export const ThreadActionsPullRequestsList: React.FunctionComponent<Props> = ({
     location,
     extensionsController,
 }) => {
-    const [itemsOrError, setItemsOrError] = useState<typeof LOADING | PullRequestConnection | ErrorLike>(LOADING)
+    const [changesetsOrError, setChangesetsOrError] = useState<typeof LOADING | Changeset[] | ErrorLike>(LOADING)
+    // tslint:disable-next-line: no-floating-promises
+    useEffect(() => {
+        const subscriptions = new Subscription()
+        subscriptions.add(
+            computeChangesets(extensionsController, threadSettings)
+                .pipe(
+                    catchError(err => [asError(err)]),
+                    startWith(LOADING)
+                )
+                .subscribe(setChangesetsOrError)
+        )
+        return () => subscriptions.unsubscribe()
+    }, [thread.id, threadSettings, extensionsController, query])
 
-    // tslint:disable-next-line: no-floating-promises because this never throws
-    useMemo(async () => {
-        try {
-            setItemsOrError(await queryPullRequests(threadSettings, query))
-        } catch (err) {
-            setItemsOrError(asError(err))
-        }
-    }, [threadSettings, query])
+    const itemsOrError: typeof LOADING | PullRequest[] | ErrorLike =
+        changesetsOrError !== LOADING && !isErrorLike(changesetsOrError)
+            ? changesetsOrError.map(c => ({
+                  ...c.pullRequest,
+                  ...getChangesetExternalStatus(c),
+                  items: 'x'.repeat(c.fileDiffs.length).split('x'),
+                  number: parseInt(getChangesetExternalStatus(c).title.replace('#', '')),
+                  repo: c.repo,
+                  updatedAt: '2019-05-30',
+                  updatedBy: 'alice',
+              }))
+            : changesetsOrError
+
+    const filteredItemsOrError =
+        itemsOrError !== LOADING && !isErrorLike(itemsOrError)
+            ? {
+                  items: itemsOrError,
+                  filteredItems: itemsOrError.filter(
+                      item =>
+                          // (query.includes('is:pending') && item.status === 'pending') ||
+                          (query.includes('is:open') && item.status === 'open') ||
+                          (query.includes('is:merged') && item.status === 'merged') ||
+                          (query.includes('is:closed') && item.status === 'closed') ||
+                          !query.includes('is:')
+                  ),
+              }
+            : itemsOrError
 
     return (
         <div className="thread-actions-pull-requests-list">
-            {isErrorLike(itemsOrError) ? (
-                <div className="alert alert-danger mt-2">{itemsOrError.message}</div>
+            {isErrorLike(filteredItemsOrError) ? (
+                <div className="alert alert-danger mt-2">{filteredItemsOrError.message}</div>
             ) : (
                 <div className="card">
                     <div className="card-header d-flex align-items-center justify-content-between">
@@ -89,7 +102,7 @@ export const ThreadActionsPullRequestsList: React.FunctionComponent<Props> = ({
                         </div>
                         <div className="font-weight-normal flex-1 d-flex align-items-center">
                             {/* TODO!(sqs) <span className="mr-2">{threadSettings.createPullRequests ? '50%' : '0%'} complete</span>*/}
-                            {itemsOrError !== LOADING && !isErrorLike(itemsOrError) && (
+                            {filteredItemsOrError !== LOADING && !isErrorLike(filteredItemsOrError) && (
                                 <ListHeaderQueryLinksNav
                                     query={query}
                                     links={[
@@ -97,31 +110,35 @@ export const ThreadActionsPullRequestsList: React.FunctionComponent<Props> = ({
                                             label: 'pending',
                                             queryField: 'is',
                                             queryValues: ['pending'],
-                                            count: itemsOrError.nodes.filter(({ status }) => status === 'pending')
-                                                .length,
+                                            count: filteredItemsOrError.items.filter(
+                                                ({ status }) => status === 'pending'
+                                            ).length,
                                             icon: DotsHorizontalCircleIcon,
                                         },
                                         {
                                             label: 'open',
                                             queryField: 'is',
                                             queryValues: ['open'],
-                                            count: itemsOrError.nodes.filter(({ status }) => status === 'open').length,
+                                            count: filteredItemsOrError.items.filter(({ status }) => status === 'open')
+                                                .length,
                                             icon: SourcePullIcon,
                                         },
                                         {
                                             label: 'merged',
                                             queryField: 'is',
                                             queryValues: ['merged'],
-                                            count: itemsOrError.nodes.filter(({ status }) => status === 'merged')
-                                                .length,
+                                            count: filteredItemsOrError.items.filter(
+                                                ({ status }) => status === 'merged'
+                                            ).length,
                                             icon: CheckCircleIcon,
                                         },
                                         {
                                             label: 'closed',
                                             queryField: 'is',
                                             queryValues: ['closed'],
-                                            count: itemsOrError.nodes.filter(({ status }) => status === 'closed')
-                                                .length,
+                                            count: filteredItemsOrError.items.filter(
+                                                ({ status }) => status === 'closed'
+                                            ).length,
                                             icon: CloseCircleIcon,
                                         },
                                     ]}
@@ -147,14 +164,14 @@ export const ThreadActionsPullRequestsList: React.FunctionComponent<Props> = ({
                                 </div>*/}
                         {action}
                     </div>
-                    {threadSettings.createPullRequests && <ThreadStatusItemsProgressBar />}
-                    {itemsOrError === LOADING ? (
-                        <LoadingSpinner className="mt-2" />
-                    ) : itemsOrError.matchingNodes.length === 0 ? (
+                    {/*{threadSettings.createPullRequests && <ThreadStatusItemsProgressBar />}*/}
+                    {filteredItemsOrError === LOADING ? (
+                        <LoadingSpinner className="m-2" />
+                    ) : filteredItemsOrError.filteredItems.length === 0 ? (
                         <p className="p-2 mb-0 text-muted">No pull requests found.</p>
                     ) : (
                         <div className="list-group list-group-flush">
-                            {itemsOrError.matchingNodes.map((pull, i) => (
+                            {filteredItemsOrError.filteredItems.map((pull, i) => (
                                 <ThreadActionsPullRequestsListItem
                                     key={i}
                                     thread={thread}

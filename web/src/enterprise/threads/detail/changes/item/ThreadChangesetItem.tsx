@@ -42,7 +42,7 @@ export const ThreadChangesetItem: React.FunctionComponent<Props> = ({
                     <ThreadChangesetExternalStatusBadge status={externalStatus.status} className="px-2" />
                     <div className="flex-1" />
                     <div className="d-flex align-items-center text-muted small font-weight-bold">
-                        <MessageOutlineIcon className="icon-inline mr-1" /> {externalStatus.commentCount}
+                        <MessageOutlineIcon className="icon-inline mr-1" /> {externalStatus.commentsCount}
                     </div>
                 </div>
             </header>
