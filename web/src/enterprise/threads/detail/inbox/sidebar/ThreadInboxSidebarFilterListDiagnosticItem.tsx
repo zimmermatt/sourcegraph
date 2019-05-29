@@ -4,7 +4,7 @@ import { DiagnosticSeverityIcon } from '../../../../../diagnostics/components/Di
 import { QueryParameterProps } from '../../../components/withQueryParameter/WithQueryParameter'
 import { ThreadInboxSidebarFilterListItem } from './ThreadInboxSidebarFilterListItem'
 
-interface Props extends Pick<QueryParameterProps, 'query'> {
+interface Props extends QueryParameterProps {
     diagnostic: Pick<Diagnostic, 'message' | 'severity'> // TODO!(sqs): group by something other than message
     count: number
 

@@ -3,7 +3,7 @@ import React from 'react'
 import { QueryParameterProps } from '../../../components/withQueryParameter/WithQueryParameter'
 import { ThreadInboxSidebarFilterListItem } from './ThreadInboxSidebarFilterListItem'
 
-interface Props extends Pick<QueryParameterProps, 'query'> {
+interface Props extends QueryParameterProps {
     path: string
     count: number
 

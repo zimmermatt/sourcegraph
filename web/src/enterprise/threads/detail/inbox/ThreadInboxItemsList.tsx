@@ -1,8 +1,8 @@
 import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import H from 'history'
 import React, { useEffect, useState } from 'react'
-import { from, Subscription } from 'rxjs'
-import { catchError, map, mapTo, startWith, switchMap } from 'rxjs/operators'
+import { Subscription } from 'rxjs'
+import { catchError, startWith } from 'rxjs/operators'
 import { Resizable } from '../../../../../../shared/src/components/Resizable'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
@@ -10,9 +10,9 @@ import { PlatformContextProps } from '../../../../../../shared/src/platform/cont
 import { asError, ErrorLike, isErrorLike } from '../../../../../../shared/src/util/errors'
 import { QueryParameterProps } from '../../components/withQueryParameter/WithQueryParameter'
 import { ThreadSettings } from '../../settings'
-import { DiagnosticInfo, queryCandidateFiles, getDiagnosticInfos } from '../backend'
+import { DiagnosticInfo, getDiagnosticInfos } from '../backend'
 import { ThreadInboxFileItem } from './item/ThreadInboxFileItem'
-import { ThreadInboxSidebar } from './sidebar/ThreadInboxSidebar'
+import { diagnosticFilter, ThreadInboxSidebar } from './sidebar/ThreadInboxSidebar'
 
 interface Props extends QueryParameterProps, ExtensionsControllerProps, PlatformContextProps {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'title' | 'type' | 'settings'>
@@ -40,7 +40,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
     extensionsController,
     ...props
 }) => {
-    const [itemsOrError, setItemsOrError] = useState<typeof LOADING | DiagnosticInfo[] | ErrorLike>(LOADING)
+    const [diagnosticsOrError, setDiagnosticsOrError] = useState<typeof LOADING | DiagnosticInfo[] | ErrorLike>(LOADING)
     // tslint:disable-next-line: no-floating-promises
     useEffect(() => {
         const subscriptions = new Subscription()
@@ -50,19 +50,19 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                     catchError(err => [asError(err)]),
                     startWith(LOADING)
                 )
-                .subscribe(setItemsOrError)
+                .subscribe(setDiagnosticsOrError)
         )
         return () => subscriptions.unsubscribe()
     }, [thread.id, extensionsController])
 
     return (
         <div className={`thread-inbox-items-list ${className}`}>
-            {isErrorLike(itemsOrError) ? (
-                <div className="alert alert-danger mt-2">{itemsOrError.message}</div>
+            {isErrorLike(diagnosticsOrError) ? (
+                <div className="alert alert-danger mt-2">{diagnosticsOrError.message}</div>
             ) : (
                 <>
-                    {itemsOrError !== LOADING &&
-                        !isErrorLike(itemsOrError) &&
+                    {diagnosticsOrError !== LOADING &&
+                        !isErrorLike(diagnosticsOrError) &&
                         /* TODO!(sqs) <WithStickyTop scrollContainerSelector=".thread-area">
                             {({ isStuck }) => (
                                 <ThreadInboxItemsNavbar
@@ -70,7 +70,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                                     thread={thread}
                                     onThreadUpdate={onThreadUpdate}
                                     threadSettings={threadSettings}
-                                    items={itemsOrError}
+                                    items={diagnosticsOrError}
                                     query={query}
                                     onQueryChange={onQueryChange}
                                     includeThreadInfo={isStuck}
@@ -81,9 +81,9 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                                 />
                             )}
                                 </WithStickyTop>*/ ''}
-                    {itemsOrError === LOADING ? (
+                    {diagnosticsOrError === LOADING ? (
                         <LoadingSpinner className="mt-2" />
-                    ) : itemsOrError.length === 0 ? (
+                    ) : diagnosticsOrError.length === 0 ? (
                         <p className="p-2 mb-0 text-muted">Inbox is empty.</p>
                     ) : (
                         <div className="d-flex">
@@ -94,7 +94,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                                 defaultSize={216 /* px */}
                                 element={
                                     <ThreadInboxSidebar
-                                        diagnostics={itemsOrError}
+                                        diagnostics={diagnosticsOrError}
                                         query={query}
                                         onQueryChange={onQueryChange}
                                         className="flex-1"
@@ -108,25 +108,27 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                                 }}
                             />
                             <ul className="list-unstyled mb-0 flex-1" style={{ minWidth: '0' }}>
-                                {itemsOrError.map((diagnostic, i) => (
-                                    <li key={i}>
-                                        <ThreadInboxFileItem
-                                            {...props}
-                                            key={i}
-                                            thread={thread}
-                                            threadSettings={threadSettings}
-                                            diagnostic={diagnostic}
-                                            onThreadUpdate={onThreadUpdate}
-                                            className="m-2"
-                                            headerClassName="thread-inbox-items-list__item-header sticky-top"
-                                            headerStyle={{
-                                                // TODO!(sqs): this is the hardcoded height of ThreadAreaNavbar
-                                                top: '39px',
-                                            }}
-                                            extensionsController={extensionsController}
-                                        />
-                                    </li>
-                                ))}
+                                {diagnosticsOrError
+                                    .filter(diagnostic => diagnosticFilter(query, diagnostic))
+                                    .map((diagnostic, i) => (
+                                        <li key={i}>
+                                            <ThreadInboxFileItem
+                                                {...props}
+                                                key={i}
+                                                thread={thread}
+                                                threadSettings={threadSettings}
+                                                diagnostic={diagnostic}
+                                                onThreadUpdate={onThreadUpdate}
+                                                className="m-2"
+                                                headerClassName="thread-inbox-items-list__item-header sticky-top"
+                                                headerStyle={{
+                                                    // TODO!(sqs): this is the hardcoded height of ThreadAreaNavbar
+                                                    top: '39px',
+                                                }}
+                                                extensionsController={extensionsController}
+                                            />
+                                        </li>
+                                    ))}
                             </ul>
                         </div>
                     )}
