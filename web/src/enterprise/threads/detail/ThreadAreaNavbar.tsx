@@ -79,7 +79,7 @@ export const ThreadAreaNavbar: React.FunctionComponent<Props> = ({
                 {sections.actions && (
                     <div className="nav-item">
                         <NavLink
-                            to={`${areaURL}/actions/pull-requests`}
+                            to={`${areaURL}/actions`}
                             className="thread-area-navbar__nav-link nav-link rounded-0"
                             activeClassName="thread-area-navbar__nav-link--active"
                         >
