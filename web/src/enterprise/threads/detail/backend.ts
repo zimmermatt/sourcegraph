@@ -1,6 +1,6 @@
 import { Range } from '@sourcegraph/extension-api-classes'
 import { sortBy } from 'lodash'
-import { combineLatest, from, Observable } from 'rxjs'
+import { combineLatest, from, Observable, of } from 'rxjs'
 import { map, mapTo, startWith, switchMap } from 'rxjs/operators'
 import * as sourcegraph from 'sourcegraph'
 import { ExtensionsControllerProps } from '../../../../../shared/src/extensions/controller'
@@ -138,6 +138,7 @@ export const getActiveCodeAction = (
     )
 
 export interface Changeset {
+    thread: Pick<GQL.IDiscussionThread, 'id'>
     repo: string
     pullRequest: PullRequestFields
     fileDiffs: FileDiff[]
@@ -157,13 +158,16 @@ const interpolatePullRequestTemplate = ({ title, branch, description }: PullRequ
 
 export const computeChangesets = (
     extensionsController: ExtensionsControllerProps['extensionsController'],
+    thread: Pick<GQL.IDiscussionThread, 'id'>,
     threadSettings: ThreadSettings,
     query?: { repo: string }
 ): Observable<Changeset[]> =>
     getDiagnosticInfos(extensionsController).pipe(
         map(diagnostics => (query ? diagnostics.filter(d => d.entry.repository.name === query.repo) : diagnostics)),
         switchMap(diagnostics =>
-            combineLatest(diagnostics.map(d => getActiveCodeAction(d, extensionsController, threadSettings)))
+            diagnostics.length > 0
+                ? combineLatest(diagnostics.map(d => getActiveCodeAction(d, extensionsController, threadSettings)))
+                : of([])
         ),
         switchMap(codeActions => computeDiff(extensionsController, codeActions.filter(isDefined))),
         map(fileDiffs => {
@@ -177,6 +181,7 @@ export const computeChangesets = (
             const changesets: Changeset[] = []
             for (const [repo, fileDiffs] of byRepo) {
                 changesets.push({
+                    thread,
                     repo,
                     pullRequest: interpolatePullRequestTemplate({
                         title: 'Untitled',
@@ -197,8 +202,14 @@ const CHANGESET_EXTERNAL_STATUSES: ChangesetExternalStatus[] = ['open', 'merged'
 
 export const getChangesetExternalStatus = ({
     repo,
-}: Pick<Changeset, 'repo'>): { title: string; status: ChangesetExternalStatus; commentsCount: number } => {
-    const k = repo.split('').reduce((sum, c) => (sum += c.charCodeAt(0)), 0)
+    fileDiffs,
+    thread,
+}: Pick<Changeset, 'repo' | 'thread'> & { fileDiffs: { length: number } }): {
+    title: string
+    status: ChangesetExternalStatus
+    commentsCount: number
+} => {
+    const k = (repo + thread.id).split('').reduce((sum, c) => (sum += c.charCodeAt(0)), 0) + fileDiffs.length
     const status = CHANGESET_EXTERNAL_STATUSES[k % CHANGESET_EXTERNAL_STATUSES.length]
     return {
         title: `#${k % 300}`,

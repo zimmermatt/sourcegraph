@@ -99,7 +99,14 @@ export const ChecksDashboardPage: React.FunctionComponent<Props> = ({ location, 
                                     <RepoLink repoName={repo} to={`/${repo}`} />
                                 </th>
                                 {threadsOrError.nodes.map((thread, i) => (
-                                    <CheckDashboardCell {...props} key={i} thread={thread} repo={repo} />
+                                    <td key={i} className="p-0 align-middle">
+                                        <CheckDashboardCell
+                                            {...props}
+                                            thread={thread}
+                                            repo={repo}
+                                            paddingClassName="p-2"
+                                        />
+                                    </td>
                                 ))}
                             </tr>
                         ))}

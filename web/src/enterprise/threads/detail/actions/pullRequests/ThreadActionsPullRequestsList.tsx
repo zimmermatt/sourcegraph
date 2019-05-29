@@ -48,7 +48,7 @@ export const ThreadActionsPullRequestsList: React.FunctionComponent<Props> = ({
     useEffect(() => {
         const subscriptions = new Subscription()
         subscriptions.add(
-            computeChangesets(extensionsController, threadSettings)
+            computeChangesets(extensionsController, thread, threadSettings)
                 .pipe(
                     catchError(err => [asError(err)]),
                     startWith(LOADING)

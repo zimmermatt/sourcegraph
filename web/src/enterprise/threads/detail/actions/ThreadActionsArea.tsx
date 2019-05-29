@@ -50,7 +50,7 @@ export const ThreadActionsArea: React.FunctionComponent<Props> = ({
     }
 
     return (
-        <div className={`thread-actions-area d-flex ${className}`}>
+        <div className={`thread-actions-area d-flex ${className} mb-3`}>
             <ThreadActionsAreaSidebar {...context} className="flex-0 mr-3" />
             <div className="flex-1">
                 <ErrorBoundary location={props.location}>
