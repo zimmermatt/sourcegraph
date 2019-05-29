@@ -5,6 +5,7 @@ import { ExtensionsControllerProps } from '../../../../../shared/src/extensions/
 import * as GQL from '../../../../../shared/src/graphql/schema'
 import { HeroPage } from '../../../components/HeroPage'
 import { ThreadsAreaContext } from '../../threads/global/ThreadsArea'
+import { ChecksDashboardPage } from '../dashboard/ChecksDashboardPage'
 import { ChecksOverviewPage } from '../overview/ChecksOverviewPage'
 import { NewCheckThreadPage } from '../threads/new/NewCheckThreadPage'
 
@@ -49,6 +50,12 @@ export const ChecksArea: React.FunctionComponent<ChecksAreaProps> = ({ match, ..
                     key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
                     // tslint:disable-next-line:jsx-no-lambda
                     render={routeComponentProps => <NewCheckThreadPage {...routeComponentProps} {...context} />}
+                />
+                <Route
+                    path={`${match.url}/dashboard`}
+                    key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
+                    // tslint:disable-next-line:jsx-no-lambda
+                    render={routeComponentProps => <ChecksDashboardPage {...routeComponentProps} {...context} />}
                 />
                 <Route key="hardcoded-key" component={NotFoundPage} />
             </Switch>

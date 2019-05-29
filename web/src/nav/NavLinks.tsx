@@ -14,8 +14,7 @@ import { LinkWithIconOnlyTooltip } from '../components/LinkWithIconOnlyTooltip'
 import { WebActionsNavItems, WebCommandListPopoverButton } from '../components/shared'
 import { isDiscussionsEnabled } from '../discussions'
 import { ChangesIcon } from '../enterprise/changes/icons'
-import { ChecksIcon } from '../enterprise/checks/icons'
-import { CodemodIcon } from '../enterprise/codemod/icons'
+import { ChecksNavItem } from '../enterprise/checks/global/nav/ChecksNavItem'
 import { ThreadsNavItem } from '../enterprise/threads/global/nav/ThreadsNavItem'
 import { KeybindingsProps } from '../keybindings'
 import { ThemePreferenceProps, ThemeProps } from '../theme'
@@ -81,13 +80,7 @@ export class NavLinks extends React.PureComponent<Props> {
                     // TODO!(sqs): only show these on enterprise
                     <>
                         <li className="nav-item">
-                            <LinkWithIconOnlyTooltip
-                                to="/checks"
-                                text="Checks"
-                                tooltip="Checks (alerts & automation)"
-                                icon={ChecksIcon}
-                                className="nav-link btn btn-link px-2 text-decoration-none"
-                            />
+                            <ChecksNavItem className="px-2" />
                         </li>
                         <li className="nav-item mr-1">
                             <ThreadsNavItem className="px-2" />
