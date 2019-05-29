@@ -54,7 +54,7 @@ export const ThreadInboxFileItem: React.FunctionComponent<Props> = ({
     useEffect(() => {
         const subscriptions = new Subscription()
         subscriptions.add(
-            getCodeActions(diagnostic, extensionsController)
+            getCodeActions({ diagnostic, extensionsController })
                 .pipe(
                     catchError(err => [asError(err)]),
                     startWith(LOADING)

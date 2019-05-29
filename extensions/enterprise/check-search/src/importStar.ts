@@ -35,12 +35,15 @@ function startDiagnostics(): Unsubscribable {
                             sourcegraph.search.findTextInFiles(
                                 { pattern: 'import \\* as (React|H)', type: 'regexp' },
                                 {
-                                    repositories: { includes: ['sourcegraph$'], type: 'regexp' },
-                                    files: {
-                                        includes: ['^(web/src/org|browser/src/libs/phabricator)/.*\\.tsx?$'],
+                                    repositories: {
+                                        includes: ['(sourcegraph2|codeintellify|about|react-loading-spinner)$'],
                                         type: 'regexp',
                                     },
-                                    maxResults: 2,
+                                    files: {
+                                        // includes: ['^(web/src/org|browser/src/libs/phabricator)/.*\\.tsx?$'],
+                                        type: 'regexp',
+                                    },
+                                    maxResults: 10,
                                 }
                             )
                         )

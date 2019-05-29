@@ -1,22 +1,18 @@
 import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
-import { flatten } from 'lodash'
 import H from 'history'
 import React, { useEffect, useState } from 'react'
-import { from, Observable, Subscription, combineLatest } from 'rxjs'
-import { catchError, map, mapTo, startWith, switchMap } from 'rxjs/operators'
+import { Subscription } from 'rxjs'
+import { catchError, startWith } from 'rxjs/operators'
 import { Resizable } from '../../../../../../shared/src/components/Resizable'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
-import { gql } from '../../../../../../shared/src/graphql/graphql'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { PlatformContextProps } from '../../../../../../shared/src/platform/context'
-import { asError, createAggregateError, ErrorLike, isErrorLike } from '../../../../../../shared/src/util/errors'
+import { asError, ErrorLike, isErrorLike } from '../../../../../../shared/src/util/errors'
 import { QueryParameterProps } from '../../components/withQueryParameter/WithQueryParameter'
 import { ThreadSettings } from '../../settings'
-import { getCodeActions, getDiagnosticInfos, queryCandidateFiles, getActiveCodeAction } from '../backend'
-import { ThreadChangedFileItem } from './item/ThreadChangedFileItem'
+import { computeChangesets, Changeset } from '../backend'
 import { ThreadInboxSidebar } from './sidebar/ThreadChangesSidebar'
-import { computeDiff, FileDiff } from './computeDiff'
-import { isDefined } from '../../../../../../shared/src/util/types'
+import { ThreadChangesetItem } from './item/ThreadChangesetItem'
 
 interface Props extends QueryParameterProps, ExtensionsControllerProps, PlatformContextProps {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'title' | 'type' | 'settings'>
@@ -42,37 +38,30 @@ export const ThreadChangesList: React.FunctionComponent<Props> = ({
     onQueryChange,
     className = '',
     extensionsController,
-    ...props
 }) => {
-    const [fileDiffsOrError, setFileDiffsOrError] = useState<typeof LOADING | FileDiff[] | ErrorLike>(LOADING)
+    const [changesetsOrError, setChangesetsOrError] = useState<typeof LOADING | Changeset[] | ErrorLike>(LOADING)
     // tslint:disable-next-line: no-floating-promises
     useEffect(() => {
         const subscriptions = new Subscription()
         subscriptions.add(
-            getDiagnosticInfos(extensionsController)
+            computeChangesets(extensionsController, threadSettings)
                 .pipe(
-                    switchMap(diagnostics =>
-                        combineLatest(
-                            diagnostics.map(d => getActiveCodeAction(d, extensionsController, threadSettings))
-                        )
-                    ),
-                    switchMap(codeActions => computeDiff(extensionsController, codeActions.filter(isDefined))),
                     catchError(err => [asError(err)]),
                     startWith(LOADING)
                 )
-                .subscribe(setFileDiffsOrError)
+                .subscribe(setChangesetsOrError)
         )
         return () => subscriptions.unsubscribe()
     }, [thread.id, threadSettings, extensionsController])
 
     return (
         <div className={`thread-changes-list ${className}`}>
-            {isErrorLike(fileDiffsOrError) ? (
-                <div className="alert alert-danger mt-2">{fileDiffsOrError.message}</div>
+            {isErrorLike(changesetsOrError) ? (
+                <div className="alert alert-danger mt-2">{changesetsOrError.message}</div>
             ) : (
                 <>
-                    {fileDiffsOrError !== LOADING &&
-                        !isErrorLike(fileDiffsOrError) &&
+                    {changesetsOrError !== LOADING &&
+                        !isErrorLike(changesetsOrError) &&
                         /* TODO!(sqs) <WithStickyTop scrollContainerSelector=".thread-area">
                             {({ isStuck }) => (
                                 <ThreadInboxItemsNavbar
@@ -80,7 +69,7 @@ export const ThreadChangesList: React.FunctionComponent<Props> = ({
                                     thread={thread}
                                     onThreadUpdate={onThreadUpdate}
                                     threadSettings={threadSettings}
-                                    items={fileDiffsOrError}
+                                    items={changesetsOrError}
                                     query={query}
                                     onQueryChange={onQueryChange}
                                     includeThreadInfo={isStuck}
@@ -91,9 +80,9 @@ export const ThreadChangesList: React.FunctionComponent<Props> = ({
                                 />
                             )}
                                 </WithStickyTop>*/ ''}
-                    {fileDiffsOrError === LOADING ? (
+                    {changesetsOrError === LOADING ? (
                         <LoadingSpinner className="mt-2" />
-                    ) : fileDiffsOrError.length === 0 ? (
+                    ) : changesetsOrError.length === 0 ? (
                         <p className="p-2 mb-0 text-muted">Inbox is empty.</p>
                     ) : (
                         <div className="d-flex">
@@ -104,7 +93,7 @@ export const ThreadChangesList: React.FunctionComponent<Props> = ({
                                 defaultSize={216 /* px */}
                                 element={
                                     <ThreadInboxSidebar
-                                        diagnostics={fileDiffsOrError}
+                                        diagnostics={changesetsOrError}
                                         query={query}
                                         onQueryChange={onQueryChange}
                                         className="flex-1"
@@ -118,12 +107,13 @@ export const ThreadChangesList: React.FunctionComponent<Props> = ({
                                 }}
                             />
                             <ul className="list-unstyled mb-0 flex-1" style={{ minWidth: '0' }}>
-                                {fileDiffsOrError.map((fileDiff, i) => (
+                                {changesetsOrError.map((changeset, i) => (
                                     <li key={i}>
-                                        <ThreadChangedFileItem
+                                        <ThreadChangesetItem
                                             key={i}
                                             className="m-2"
-                                            diff={fileDiff}
+                                            threadSettings={threadSettings}
+                                            changeset={changeset}
                                             headerClassName="thread-changes-list__item-header sticky-top"
                                             headerStyle={{
                                                 // TODO!(sqs): this is the hardcoded height of ThreadAreaNavbar

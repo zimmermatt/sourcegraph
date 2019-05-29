@@ -18,14 +18,16 @@ export type PullRequest = {
           updatedBy: string
       })
 
+export interface PullRequestFields {
+    title: string
+    branch: string
+    description: string
+}
+
 export interface ThreadSettings {
     providers?: string[]
     queries?: string[]
     pullRequests?: PullRequest[]
-    pullRequestTemplate?: {
-        title?: string
-        branch?: string
-        description?: string
-    }
+    pullRequestTemplate?: Partial<PullRequestFields>
     actions?: { [id: string]: string | undefined }
 }

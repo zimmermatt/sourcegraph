@@ -1,5 +1,6 @@
 import { Range } from '@sourcegraph/extension-api-classes'
-import { from, Observable } from 'rxjs'
+import { sortBy } from 'lodash'
+import { combineLatest, from, Observable } from 'rxjs'
 import { map, mapTo, startWith, switchMap } from 'rxjs/operators'
 import * as sourcegraph from 'sourcegraph'
 import { ExtensionsControllerProps } from '../../../../../shared/src/extensions/controller'
@@ -7,9 +8,11 @@ import { gql } from '../../../../../shared/src/graphql/graphql'
 import * as GQL from '../../../../../shared/src/graphql/schema'
 import { createAggregateError } from '../../../../../shared/src/util/errors'
 import { memoizeObservable } from '../../../../../shared/src/util/memoizeObservable'
+import { isDefined } from '../../../../../shared/src/util/types'
 import { makeRepoURI, parseRepoURI } from '../../../../../shared/src/util/url'
 import { queryGraphQL } from '../../../backend/graphql'
-import { ThreadSettings } from '../settings'
+import { PullRequestFields, ThreadSettings } from '../settings'
+import { computeDiff, FileDiff } from './changes/computeDiff'
 
 export interface DiagnosticInfo extends sourcegraph.Diagnostic {
     entry: Pick<GQL.ITreeEntry, 'path' | 'isDirectory' | 'url'> & {
@@ -88,27 +91,30 @@ export const getDiagnosticInfos = (
         })
     )
 
-export const getCodeActions = (
-    diagnostic: DiagnosticInfo,
-    extensionsController: ExtensionsControllerProps['extensionsController']
-): Observable<sourcegraph.CodeAction[]> =>
-    from(
-        extensionsController.services.codeActions.getCodeActions({
-            textDocument: {
-                uri: makeRepoURI({
-                    repoName: diagnostic.entry.repository.name,
-                    rev: diagnostic.entry.commit.oid,
-                    commitID: diagnostic.entry.commit.oid,
-                    filePath: diagnostic.entry.path,
-                }),
-            },
-            range: Range.fromPlain(diagnostic.range),
-            context: { diagnostics: [diagnostic] },
-        })
-    ).pipe(map(codeActions => codeActions || []))
-
 export const diagnosticID = (diagnostic: DiagnosticInfo): string =>
     `${diagnostic.entry.path}:${diagnostic.range.start.line}:${diagnostic.range.start.character}:${diagnostic.message}`
+
+export const getCodeActions = memoizeObservable(
+    ({
+        diagnostic,
+        extensionsController,
+    }: { diagnostic: DiagnosticInfo } & ExtensionsControllerProps): Observable<sourcegraph.CodeAction[]> =>
+        from(
+            extensionsController.services.codeActions.getCodeActions({
+                textDocument: {
+                    uri: makeRepoURI({
+                        repoName: diagnostic.entry.repository.name,
+                        rev: diagnostic.entry.commit.oid,
+                        commitID: diagnostic.entry.commit.oid,
+                        filePath: diagnostic.entry.path,
+                    }),
+                },
+                range: Range.fromPlain(diagnostic.range),
+                context: { diagnostics: [diagnostic] },
+            })
+        ).pipe(map(codeActions => codeActions || [])),
+    ({ diagnostic }) => diagnosticID(diagnostic)
+)
 
 export const codeActionID = (codeAction: sourcegraph.CodeAction): string => codeAction.title // TODO!(sqs): codeAction.title is not guaranteed unique
 
@@ -127,6 +133,46 @@ export const getActiveCodeAction = (
     extensionsController: ExtensionsControllerProps['extensionsController'],
     threadSettings: ThreadSettings
 ): Observable<sourcegraph.CodeAction | undefined> =>
-    getCodeActions(diagnostic, extensionsController).pipe(
+    getCodeActions({ diagnostic, extensionsController }).pipe(
         map(codeActions => getActiveCodeAction0(diagnostic, threadSettings, codeActions))
+    )
+
+export interface Changeset {
+    repo: string
+    pullRequest: PullRequestFields
+    fileDiffs: FileDiff[]
+}
+
+export const computeChangesets = (
+    extensionsController: ExtensionsControllerProps['extensionsController'],
+    threadSettings: ThreadSettings
+): Observable<Changeset[]> =>
+    getDiagnosticInfos(extensionsController).pipe(
+        switchMap(diagnostics =>
+            combineLatest(diagnostics.map(d => getActiveCodeAction(d, extensionsController, threadSettings)))
+        ),
+        switchMap(codeActions => computeDiff(extensionsController, codeActions.filter(isDefined))),
+        map(fileDiffs => {
+            const byRepo = new Map<string, FileDiff[]>()
+            for (const fileDiff of fileDiffs) {
+                const parsed = parseRepoURI(fileDiff.newPath || fileDiff.oldPath!)
+                const key = parsed.repoName
+                byRepo.set(key, [...(byRepo.get(key) || []), fileDiff])
+            }
+
+            const changesets: Changeset[] = []
+            for (const [repo, fileDiffs] of byRepo) {
+                changesets.push({
+                    repo,
+                    pullRequest: {
+                        title: 'Untitled',
+                        branch: 'codemod-84571', // TODO!(sqs)
+                        description: 'No description set',
+                        ...threadSettings.pullRequestTemplate,
+                    },
+                    fileDiffs,
+                })
+            }
+            return sortBy(changesets, c => c.repo)
+        })
     )

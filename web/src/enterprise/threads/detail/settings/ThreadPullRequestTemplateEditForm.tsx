@@ -29,12 +29,15 @@ export const ThreadPullRequestTemplateEditForm: React.FunctionComponent<Props> =
     // const branchPlaceholder = 'codemod/' + [find, replace].map(v => v.replace(/[^\w]+/g, '_')).join('-')
     const titlePlaceholder = `${thread.title} (Sourcegraph codemod)`
     const branchPlaceholder = `codemod/${thread.title.replace(/[^\w]+/g, '_')}`
+    // tslint:disable-next-line: no-invalid-template-strings
+    const descriptionDefaultValue = 'Sourcegraph codemod: [${query}](${query_url})\n\nRelated PRs: ${related_links}'
 
     const [uncommittedSettings, setUncommittedSettings] = useState<ThreadSettings>({
         ...threadSettings,
         pullRequestTemplate: {
             title: titlePlaceholder,
             branch: branchPlaceholder,
+            description: descriptionDefaultValue,
             ...threadSettings.pullRequestTemplate,
         },
     })
@@ -117,9 +120,10 @@ export const ThreadPullRequestTemplateEditForm: React.FunctionComponent<Props> =
                             id="thread-pull-request-template-edit-form__description"
                             aria-describedby="thread-pull-request-template-edit-form__description-help"
                             rows={4}
-                            defaultValue={
-                                // tslint:disable-next-line: no-invalid-template-strings
-                                'Sourcegraph codemod: [${query}](${query_url})\n\nRelated PRs: ${related_links}'
+                            value={
+                                uncommittedSettings.pullRequestTemplate
+                                    ? uncommittedSettings.pullRequestTemplate.description
+                                    : ''
                             }
                             onChange={e =>
                                 setUncommittedSettings({
