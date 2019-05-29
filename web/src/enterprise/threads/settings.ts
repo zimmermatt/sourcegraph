@@ -24,10 +24,16 @@ export interface PullRequestFields {
     description: string
 }
 
+export interface CommitStatusRule {
+    branch: string
+    infoOnly: boolean
+}
+
 export interface ThreadSettings {
     providers?: string[]
     queries?: string[]
     pullRequests?: PullRequest[]
     pullRequestTemplate?: Partial<PullRequestFields>
+    commitStatusRules?: [CommitStatusRule]
     actions?: { [id: string]: string | undefined }
 }

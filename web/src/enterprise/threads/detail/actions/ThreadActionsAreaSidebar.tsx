@@ -39,7 +39,7 @@ export const ThreadActionsAreaSidebar: React.FunctionComponent<Props> = ({ areaU
                     className="list-group-item list-group-item-action p-2"
                     activeClassName="active"
                 >
-                    <SourceCommitIcon className="icon-inline" /> Commit status
+                    <SourceCommitIcon className="icon-inline" /> Commit statuses
                 </NavLink>
                 <NavLink
                     to={`${areaURL}/slack`}
