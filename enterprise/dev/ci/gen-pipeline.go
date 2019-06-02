@@ -160,8 +160,8 @@ func main() {
 
 		pipeline.AddStep(":go:",
 			bk.Cmd("./cmd/symbols/build.sh buildLibsqlite3Pcre"), // for symbols tests
-			bk.Cmd("go test -timeout 4m -coverprofile=coverage.txt -covermode=atomic -race ./..."),
-			bk.ArtifactPaths("coverage.txt"))
+			bk.Cmd("go test -json -timeout 4m -coverprofile=coverage.txt -covermode=atomic -race ./... > gotest.json"),
+			bk.ArtifactPaths("coverage.txt", "gotest.json"))
 
 		pipeline.AddStep(":go:",
 			bk.Cmd("go generate ./..."),
@@ -195,6 +195,9 @@ func main() {
 		bk.Cmd("buildkite-agent artifact download 'coverage.txt' . || true"), // ignore error when no report exists
 		bk.Cmd("buildkite-agent artifact download '*/coverage-final.json' . || true"),
 		bk.Cmd("bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -X xcode"))
+
+	pipeline.AddStep(":zeus:",
+		bk.Cmd("buildkite-agent artifact download 'gotest.json' . && ./dev/zeus upload -t 'application/x-gotest+json' gotest.json"))
 
 	// addDockerImageStep adds a build step for a given app.
 	// If the app is not in the cmd directory, it is assumed to be from the open source repo.
