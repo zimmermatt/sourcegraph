@@ -1,4 +1,5 @@
 steps:
+  - command: ./dev/zeus job update -s pending && buildkite-agent meta-data set "status" "failed"
   - command: |
       GO111MODULE=on go run ./enterprise/dev/ci/gen-pipeline.go | tee ./pipeline.yml
       buildkite-agent pipeline upload ./pipeline.yml
@@ -6,3 +7,8 @@ steps:
     plugins:
       gopath-checkout#v1.0.1:
         import: github.com/sourcegraph/sourcegraph
+  - wait: ~
+  - command: buildkite-agent meta-data set "status" "passed"
+  - wait: ~
+    continue_on_failure: true
+  - command: ./dev/zeus job update -s $(buildkite-agent meta-data get "status")

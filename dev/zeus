@@ -1,0 +1,13 @@
+#!/bin/bash
+
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+zeus="$(yarn bin)/zeus"
+
+set -e
+
+if [ ! -x "$zeus" ]; then
+    yarn
+fi
+
+"$zeus" "$@"
