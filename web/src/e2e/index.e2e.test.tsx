@@ -1,6 +1,7 @@
 import { percySnapshot as realPercySnapshot } from '@percy/puppeteer'
 import * as path from 'path'
 import puppeteer from 'puppeteer'
+import * as util from 'util'
 import {
     ensureHasExternalService,
     ensureLoggedIn,
@@ -77,7 +78,12 @@ describe('e2e test suite', function(this: any): void {
         async () => {
             browser = await launchBrowser(['--window-size=1280,1024'])
             page = await browser.newPage()
-            page.on('console', message => console.log('Browser console message:', JSON.stringify(message)))
+            page.on('console', message =>
+                console.log(
+                    'Browser console message:',
+                    util.inspect(message, { colors: true, depth: 2, breakLength: Infinity })
+                )
+            )
             await init()
         },
         // Cloning the repositories takes ~1 minute, so give initialization 2
