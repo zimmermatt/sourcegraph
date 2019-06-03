@@ -246,6 +246,26 @@ func (t *PageToken) Values() url.Values {
 	return v
 }
 
+// Perm represents a Bitbucket Server permission.
+type Perm string
+
+// Permission constants.
+const (
+	PermSysAdmin      Perm = "SYS_ADMIN"
+	PermAdmin         Perm = "ADMIN"
+	PermLicensedUser  Perm = "LICENSED_USER"
+	PermProjectCreate Perm = "PROJECT_CREATE"
+
+	PermProjectAdmin Perm = "PROJECT_ADMIN"
+	PermProjectWrite Perm = "PROJECT_WRITE"
+	PermProjectView  Perm = "PROJECT_VIEW"
+	PermProjectRead  Perm = "PROJECT_READ"
+
+	PermRepoAdmin Perm = "REPO_ADMIN"
+	PermRepoRead  Perm = "REPO_READ"
+	PermRepoWrite Perm = "REPO_WRITE"
+)
+
 type Repo struct {
 	Slug          string   `json:"slug"`
 	ID            int      `json:"id"`
